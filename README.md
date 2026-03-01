@@ -10,6 +10,7 @@
 
 ## 현재 상태
 - Web(PWA) + Google OAuth 기반 MVP 스캐폴딩 완료
+- 홈/캘린더 화면은 Supabase `gifticons` 테이블 실데이터 조회로 동작
 
 ## 문서
 - `docs/PRD.md` : 제품 기획 요약

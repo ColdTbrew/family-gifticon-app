@@ -1,9 +1,14 @@
+import Link from "next/link";
 import { UrgencyBoard } from "@/components/urgency-board";
-import { mockGifticons } from "@/lib/mock-data";
+import { fetchCurrentUserGifticons } from "@/lib/data/gifticons";
 import { buildUrgencyBuckets } from "@/lib/urgency";
 
-export default function HomePage() {
-  const urgency = buildUrgencyBuckets(mockGifticons, new Date());
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const { gifticons, isAuthenticated, errorMessage } = await fetchCurrentUserGifticons();
+  const urgency = buildUrgencyBuckets(gifticons, new Date());
+  const hasItems = urgency.today.length + urgency.soon.length + urgency.caution.length > 0;
 
   return (
     <section>
@@ -15,7 +20,29 @@ export default function HomePage() {
         </p>
       </header>
 
-      <UrgencyBoard buckets={urgency} />
+      {!isAuthenticated ? (
+        <div className="notice-card">
+          <p className="notice-title">로그인이 필요합니다.</p>
+          <p className="muted">Google 로그인 후 가족 기프티콘 데이터를 불러옵니다.</p>
+          <Link className="action-link" href="/auth">
+            로그인하러 가기
+          </Link>
+        </div>
+      ) : errorMessage ? (
+        <div className="notice-card">
+          <p className="notice-title">데이터를 불러오지 못했습니다.</p>
+          <p className="muted">{errorMessage}</p>
+        </div>
+      ) : hasItems ? (
+        <UrgencyBoard buckets={urgency} />
+      ) : (
+        <div className="notice-card">
+          <p className="notice-title">임박한 기프티콘이 없습니다.</p>
+          <p className="muted">
+            현재는 D-7 이내 쿠폰이 없거나, 아직 등록된 쿠폰이 없습니다.
+          </p>
+        </div>
+      )}
     </section>
   );
 }

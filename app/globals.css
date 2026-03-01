@@ -157,6 +157,34 @@ a {
   font-size: 0.85rem;
 }
 
+.notice-card {
+  max-width: 560px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  padding: 0.95rem;
+}
+
+.notice-title {
+  margin: 0 0 0.45rem;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.action-link {
+  display: inline-flex;
+  margin-top: 0.75rem;
+  padding: 0.48rem 0.75rem;
+  border: 1px solid #2f5ec4;
+  border-radius: 9px;
+  color: #2f5ec4;
+  font-weight: 600;
+}
+
+.action-link:hover {
+  background: #f1f6ff;
+}
+
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
