@@ -1,11 +1,38 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { UrgencyBoard } from "@/components/urgency-board";
 import { fetchCurrentUserGifticons } from "@/lib/data/gifticons";
 import { buildUrgencyBuckets } from "@/lib/urgency";
 
 export const dynamic = "force-dynamic";
 
-export default async function HomePage() {
+type HomePageProps = {
+  searchParams?: {
+    code?: string | string[];
+    next?: string | string[];
+  };
+};
+
+function toSingleParam(value: string | string[] | undefined): string | null {
+  if (!value) {
+    return null;
+  }
+  return Array.isArray(value) ? value[0] : value;
+}
+
+export default async function HomePage({ searchParams }: HomePageProps) {
+  const oauthCode = toSingleParam(searchParams?.code);
+  const next = toSingleParam(searchParams?.next);
+
+  if (oauthCode) {
+    const callbackUrl = new URL("http://localhost/auth/callback");
+    callbackUrl.searchParams.set("code", oauthCode);
+    if (next) {
+      callbackUrl.searchParams.set("next", next);
+    }
+    redirect(`${callbackUrl.pathname}${callbackUrl.search}`);
+  }
+
   const { gifticons, isAuthenticated, errorMessage } = await fetchCurrentUserGifticons();
   const urgency = buildUrgencyBuckets(gifticons, new Date());
   const hasItems = urgency.today.length + urgency.soon.length + urgency.caution.length > 0;

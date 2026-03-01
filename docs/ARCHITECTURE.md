@@ -10,16 +10,18 @@
 ## 2) 사용자 흐름
 1. 사용자가 Google 로그인
 2. 최초 로그인 시 프로필 생성
-3. 가족 그룹 생성 또는 초대 코드로 참여
-4. 기프티콘 등록(텍스트 + 이미지)
-5. 홈에서 만료 임박 쿠폰부터 확인
-6. 캘린더에서 날짜별 만료 예정 확인
-7. 사용 처리 및 상태 공유
+3. 이메일 사전등록 allowlist 매칭 시 가족 자동 합류
+4. 가족 그룹 생성 또는 초대 코드로 참여
+5. 기프티콘 등록(텍스트 + 이미지)
+6. 홈에서 만료 임박 쿠폰부터 확인
+7. 캘린더에서 날짜별 만료 예정 확인
+8. 사용 처리 및 상태 공유
 
 ## 3) 최소 데이터 모델
 - `profiles`: `id`, `email`, `name`, `created_at`
 - `families`: `id`, `name`, `owner_id`, `created_at`
 - `family_members`: `id`, `family_id`, `user_id`, `role`
+- `family_email_allowlist`: `id`, `family_id`, `email`, `role`, `joined_user_id`, `joined_at`
 - `gifticons`: `id`, `family_id`, `title`, `brand`, `barcode`, `expires_at`, `status`
 - `gifticon_images`: `id`, `gifticon_id`, `storage_path`
 - `gifticon_events`: `id`, `gifticon_id`, `event_type`, `actor_id`, `created_at`

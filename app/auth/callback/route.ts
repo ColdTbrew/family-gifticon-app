@@ -9,7 +9,15 @@ export async function GET(request: NextRequest) {
 
   if (code) {
     const supabase = createSupabaseServerClient();
-    await supabase.auth.exchangeCodeForSession(code);
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+    if (!error) {
+      // If this Google account email is pre-registered for a family, auto-join on login.
+      const { error: claimError } = await supabase.rpc("claim_family_memberships");
+      if (claimError) {
+        console.error("claim_family_memberships failed:", claimError.message);
+      }
+    }
   }
 
   return NextResponse.redirect(new URL(safeNext, requestUrl.origin));
