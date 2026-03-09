@@ -17,6 +17,7 @@ export function DeleteGifticonButton({ id }: DeleteGifticonButtonProps) {
 
         await deleteGifticon(formData);
       }}
+      formNoValidate
       name="id"
       value={id}
       className="danger"
