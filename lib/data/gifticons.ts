@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { fetchCurrentFamilyContext } from "@/lib/data/family";
 import { Gifticon, GifticonStatus } from "@/lib/types";
 
 type GifticonRow = {
@@ -28,20 +29,29 @@ function mapGifticonRow(row: GifticonRow): Gifticon {
 }
 
 export async function fetchCurrentUserGifticons(): Promise<GifticonQueryResult> {
-  const supabase = createSupabaseServerClient();
-  const { data: authData, error: authError } = await supabase.auth.getUser();
+  const familyContext = await fetchCurrentFamilyContext();
 
-  if (authError || !authData.user) {
+  if (!familyContext.isAuthenticated) {
     return {
       gifticons: [],
       isAuthenticated: false,
-      errorMessage: authError?.message ?? null
+      errorMessage: familyContext.errorMessage
     };
   }
 
+  if (!familyContext.familyId) {
+    return {
+      gifticons: [],
+      isAuthenticated: true,
+      errorMessage: familyContext.errorMessage
+    };
+  }
+
+  const supabase = createSupabaseServerClient();
   const { data, error } = await supabase
     .from("gifticons")
     .select("id,title,brand,barcode,expires_at,status")
+    .eq("family_id", familyContext.familyId)
     .order("expires_at", { ascending: true });
 
   if (error) {

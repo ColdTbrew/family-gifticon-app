@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { DeleteGifticonButton } from "@/components/delete-gifticon-button";
 import { fetchCurrentUserGifticons } from "@/lib/data/gifticons";
-import { createGifticon, deleteGifticon, updateGifticon } from "./actions";
+import { createGifticon, updateGifticon } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -96,9 +97,7 @@ export default async function GifticonsPage() {
                     </label>
                     <div className="row-actions">
                       <button type="submit">수정</button>
-                      <button formAction={deleteGifticon} name="id" value={gifticon.id} className="danger" type="submit">
-                        삭제
-                      </button>
+                      <DeleteGifticonButton id={gifticon.id} />
                     </div>
                   </form>
                 ))}
