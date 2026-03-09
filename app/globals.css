@@ -264,3 +264,97 @@ a {
     min-height: 90px;
   }
 }
+
+.crud-layout {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.crud-panel {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  padding: 1rem;
+}
+
+.crud-panel h2 {
+  margin: 0 0 0.8rem;
+  font-size: 1rem;
+}
+
+.gifticon-form {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.gifticon-form.inline {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.7rem;
+  background: #fbfdff;
+}
+
+.gifticon-form label {
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.gifticon-form input,
+.gifticon-form select,
+.gifticon-form button {
+  font: inherit;
+}
+
+.gifticon-form input,
+.gifticon-form select {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem;
+  color: var(--text);
+  background: #fff;
+}
+
+.gifticon-form button {
+  border: 1px solid #2f5ec4;
+  border-radius: 8px;
+  padding: 0.5rem 0.7rem;
+  font-weight: 600;
+  color: #2f5ec4;
+  background: #f2f6ff;
+  cursor: pointer;
+}
+
+.gifticon-form button:hover {
+  background: #e6eeff;
+}
+
+.row-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.row-actions button {
+  flex: 1;
+}
+
+.row-actions .danger {
+  border-color: #c83343;
+  color: #c83343;
+  background: #fff2f3;
+}
+
+.gifticon-edit-list {
+  display: grid;
+  gap: 0.7rem;
+}
+
+@media (max-width: 900px) {
+  .crud-layout {
+    grid-template-columns: 1fr;
+  }
+}
