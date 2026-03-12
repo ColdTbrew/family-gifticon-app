@@ -36,6 +36,7 @@ npm run dev
 ## 핵심 화면
 - `/` : 만료 임박 우선 홈 (`오늘 만료`, `D-1~3`, `D-4~7`)
 - `/calendar` : 월간 만료 캘린더
+- `/gifticons` : 기프티콘 등록/수정/삭제 CRUD
 - `/auth` : Google OAuth 로그인 시작
 
 ## 기술 스택
