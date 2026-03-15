@@ -13,7 +13,8 @@ type GifticonCardProps = {
 
 export function GifticonCard({ item, ddayLabel }: GifticonCardProps) {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const canPreview = Boolean(item.imageUrl);
+  const previewImageUrl = item.imageUrl;
+  const canPreview = Boolean(previewImageUrl);
   const isUsed = item.status === "used";
   const action = isUsed ? markGifticonAvailable : markGifticonUsed;
   const actionLabel = isUsed ? "사용 완료 취소" : "사용 완료";
@@ -31,42 +32,55 @@ export function GifticonCard({ item, ddayLabel }: GifticonCardProps) {
           }
         }}
       >
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <p className="text-[0.95rem] font-bold text-ink">{item.title}</p>
-            <p className="mt-1.5 text-sm text-muted">
-              {item.brand} · 만료 {toDateInputValue(parseDateOnly(item.expiresAt))} · {ddayLabel}
-            </p>
-            {usedLabel ? (
-              <p className="mt-2 text-xs font-medium text-[#8a5b12]">사용 완료: {usedLabel}</p>
-            ) : null}
-            {canPreview ? (
-              <p className="mt-2 text-xs font-medium text-[#2f5ec4]">카드를 누르면 등록 이미지를 볼 수 있습니다.</p>
-            ) : null}
+        <div className="flex items-stretch justify-between gap-4">
+          <div className="flex min-w-0 flex-1 flex-col justify-between">
+            <div>
+              <p className="text-[0.95rem] font-bold text-ink">{item.title}</p>
+              <p className="mt-1.5 text-sm text-muted">
+                {item.brand} · 만료 {toDateInputValue(parseDateOnly(item.expiresAt))} · {ddayLabel}
+              </p>
+              {usedLabel ? (
+                <p className="mt-2 text-xs font-medium text-[#8a5b12]">사용 완료: {usedLabel}</p>
+              ) : null}
+            </div>
+
+            <form
+              action={action}
+              className="mt-3"
+              onClick={(event) => {
+                event.stopPropagation();
+              }}
+            >
+              <input type="hidden" name="gifticonId" value={item.id} />
+              <button
+                type="submit"
+                className={`rounded-xl border bg-white px-3 py-2 text-sm font-semibold transition ${
+                  isUsed
+                    ? "border-[#e6c88d] text-[#8a5b12] hover:bg-[#fff8eb]"
+                    : "border-[#b9dcc7] text-[#22613a] hover:bg-[#f3fbf6]"
+                }`}
+              >
+                {actionLabel}
+              </button>
+            </form>
           </div>
+
+          {canPreview ? (
+            <div className="shrink-0 overflow-hidden rounded-2xl border border-line bg-white">
+              <Image
+                src={previewImageUrl as string}
+                alt={`${item.title} 썸네일`}
+                width={88}
+                height={116}
+                className="h-full min-h-20 w-16 object-cover sm:min-h-24 sm:w-20"
+                unoptimized
+              />
+            </div>
+          ) : null}
         </div>
-        <form
-          action={action}
-          className="mt-3"
-          onClick={(event) => {
-            event.stopPropagation();
-          }}
-        >
-          <input type="hidden" name="gifticonId" value={item.id} />
-          <button
-            type="submit"
-            className={`rounded-xl border bg-white px-3 py-2 text-sm font-semibold transition ${
-              isUsed
-                ? "border-[#e6c88d] text-[#8a5b12] hover:bg-[#fff8eb]"
-                : "border-[#b9dcc7] text-[#22613a] hover:bg-[#f3fbf6]"
-            }`}
-          >
-            {actionLabel}
-          </button>
-        </form>
       </article>
 
-      {isPreviewOpen && item.imageUrl ? (
+      {isPreviewOpen && previewImageUrl ? (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-[#0f172acc] p-3 sm:p-4"
           onClick={() => setIsPreviewOpen(false)}
@@ -96,7 +110,7 @@ export function GifticonCard({ item, ddayLabel }: GifticonCardProps) {
 
             <div className="min-h-0 flex-1 overflow-auto rounded-[1.25rem] border border-line bg-slate-50">
               <Image
-                src={item.imageUrl}
+                src={previewImageUrl}
                 alt={`${item.title} 등록 이미지`}
                 width={1400}
                 height={1400}

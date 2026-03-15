@@ -9,10 +9,10 @@ import { buildUrgencyBuckets } from "@/lib/urgency";
 export const dynamic = "force-dynamic";
 
 type HomePageProps = {
-  searchParams?: {
+  searchParams?: Promise<{
     code?: string | string[];
     next?: string | string[];
-  };
+  }>;
 };
 
 function toSingleParam(value: string | string[] | undefined): string | null {
@@ -23,8 +23,9 @@ function toSingleParam(value: string | string[] | undefined): string | null {
 }
 
 export default async function HomePage({ searchParams }: HomePageProps) {
-  const oauthCode = toSingleParam(searchParams?.code);
-  const next = toSingleParam(searchParams?.next);
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const oauthCode = toSingleParam(resolvedSearchParams?.code);
+  const next = toSingleParam(resolvedSearchParams?.next);
 
   if (oauthCode) {
     const callbackUrl = new URL("http://localhost/auth/callback");
