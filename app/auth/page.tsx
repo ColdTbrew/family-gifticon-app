@@ -1,6 +1,15 @@
+import { redirect } from "next/navigation";
 import { GoogleLoginButton } from "@/components/google-login-button";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
-export default function AuthPage() {
+export default async function AuthPage() {
+  const supabase = createSupabaseServerClient();
+  const { data } = await supabase.auth.getUser();
+
+  if (data.user) {
+    redirect("/");
+  }
+
   return (
     <section className="space-y-6">
       <header className="mb-5 space-y-1.5">
