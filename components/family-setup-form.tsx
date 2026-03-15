@@ -2,10 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import { useFormState, useFormStatus } from "react-dom";
-import {
-  createFamily,
-  initialFamilySetupState
-} from "@/app/family/setup/actions";
+import { createFamily } from "@/app/family/setup/actions";
+import type { FamilySetupState } from "@/app/family/setup/actions";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -22,7 +20,11 @@ function SubmitButton() {
 }
 
 export function FamilySetupForm() {
-  const [state, formAction] = useFormState(createFamily, initialFamilySetupState);
+  const initialState: FamilySetupState = {
+    status: "idle",
+    message: null
+  };
+  const [state, formAction] = useFormState(createFamily, initialState);
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {

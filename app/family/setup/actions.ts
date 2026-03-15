@@ -8,11 +8,6 @@ export type FamilySetupState = {
   message: string | null;
 };
 
-export const initialFamilySetupState: FamilySetupState = {
-  status: "idle",
-  message: null
-};
-
 export async function createFamily(
   _prevState: FamilySetupState,
   formData: FormData

@@ -11,11 +11,6 @@ export type GifticonUploadState = {
   message: string | null;
 };
 
-export const initialGifticonUploadState: GifticonUploadState = {
-  status: "idle",
-  message: null
-};
-
 function getString(formData: FormData, key: string): string {
   const value = formData.get(key);
   return typeof value === "string" ? value.trim() : "";

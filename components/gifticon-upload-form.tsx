@@ -3,11 +3,8 @@
 import { useEffect, useRef } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { FamilyOption } from "@/lib/data/families";
-import {
-  createGifticon,
-  GifticonUploadState,
-  initialGifticonUploadState
-} from "@/app/gifticons/new/actions";
+import { createGifticon } from "@/app/gifticons/new/actions";
+import type { GifticonUploadState } from "@/app/gifticons/new/actions";
 
 type GifticonUploadFormProps = {
   families: FamilyOption[];
@@ -46,7 +43,11 @@ function StatusMessage({ state }: { state: GifticonUploadState }) {
 }
 
 export function GifticonUploadForm({ families }: GifticonUploadFormProps) {
-  const [state, formAction] = useFormState(createGifticon, initialGifticonUploadState);
+  const initialState: GifticonUploadState = {
+    status: "idle",
+    message: null
+  };
+  const [state, formAction] = useFormState(createGifticon, initialState);
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
