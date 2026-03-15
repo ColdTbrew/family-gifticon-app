@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FamilyAllowlistForm } from "@/components/family-allowlist-form";
 import { FamilyDeleteForm } from "@/components/family-delete-form";
 import { FamilyInviteForm } from "@/components/family-invite-form";
 import { FamilyJoinForm } from "@/components/family-join-form";
@@ -71,6 +72,7 @@ export default async function FamilySetupPage() {
             </div>
 
             <FamilyInviteForm ownedFamilies={ownedFamilies} />
+            <FamilyAllowlistForm ownedFamilies={ownedFamilies} />
             <FamilyDeleteForm ownedFamilies={ownedFamilies} />
           </div>
 

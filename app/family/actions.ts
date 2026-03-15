@@ -239,3 +239,146 @@ export async function deleteFamily(
     message: "가족이 삭제되었습니다. 이제 새 가족을 만들 수 있습니다."
   };
 }
+
+export async function addAllowedFamilyEmail(
+  _prevState: FamilyInviteActionState,
+  formData: FormData
+): Promise<FamilyInviteActionState> {
+  const familyIdValue = formData.get("familyId");
+  const emailValue = formData.get("email");
+  const familyId = typeof familyIdValue === "string" ? familyIdValue.trim() : "";
+  const email = typeof emailValue === "string" ? emailValue.trim().toLowerCase() : "";
+
+  if (!familyId) {
+    return {
+      status: "error",
+      message: "사용자를 추가할 가족을 선택해주세요."
+    };
+  }
+
+  if (!email || !email.includes("@")) {
+    return {
+      status: "error",
+      message: "올바른 이메일 주소를 입력해주세요."
+    };
+  }
+
+  const supabase = createSupabaseServerClient();
+  const { data: authData, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !authData.user) {
+    return {
+      status: "error",
+      message: "로그인 후 사용 가능한 유저를 추가할 수 있습니다."
+    };
+  }
+
+  const { data: membership, error: membershipError } = await supabase
+    .from("family_members")
+    .select("role")
+    .eq("family_id", familyId)
+    .eq("user_id", authData.user.id)
+    .maybeSingle();
+
+  if (membershipError || !membership || membership.role !== "owner") {
+    return {
+      status: "error",
+      message: "가족 owner만 사용 가능한 유저를 추가할 수 있습니다."
+    };
+  }
+
+  const { data: existingAllowlist, error: existingAllowlistError } = await supabase
+    .from("family_email_allowlist")
+    .select("id,joined_user_id")
+    .eq("family_id", familyId)
+    .ilike("email", email)
+    .maybeSingle();
+
+  if (existingAllowlistError) {
+    return {
+      status: "error",
+      message: `기존 초대 대상 확인에 실패했습니다: ${existingAllowlistError.message}`
+    };
+  }
+
+  let allowlistId = existingAllowlist?.id ?? null;
+
+  if (!allowlistId) {
+    const { data: insertedAllowlist, error: insertAllowlistError } = await supabase
+      .from("family_email_allowlist")
+      .insert({
+        family_id: familyId,
+        email,
+        role: "member",
+        invited_by: authData.user.id
+      })
+      .select("id")
+      .single();
+
+    if (insertAllowlistError || !insertedAllowlist) {
+      return {
+        status: "error",
+        message: `사용 가능한 유저 추가에 실패했습니다: ${insertAllowlistError?.message ?? "알 수 없는 오류"}`
+      };
+    }
+
+    allowlistId = insertedAllowlist.id;
+  }
+
+  const { data: matchedProfile, error: profileError } = await supabase
+    .from("profiles")
+    .select("id")
+    .ilike("email", email)
+    .maybeSingle();
+
+  if (profileError) {
+    return {
+      status: "error",
+      message: `사용자 프로필 확인에 실패했습니다: ${profileError.message}`
+    };
+  }
+
+  let suffix = "다음 로그인부터 이 이메일 계정이 자동으로 가족에 연결됩니다.";
+
+  if (matchedProfile?.id) {
+    const { error: memberInsertError } = await supabase.from("family_members").insert({
+      family_id: familyId,
+      user_id: matchedProfile.id,
+      role: "member"
+    });
+
+    if (memberInsertError && memberInsertError.code !== "23505") {
+      return {
+        status: "error",
+        message: `기존 사용자 멤버십 연결에 실패했습니다: ${memberInsertError.message}`
+      };
+    }
+
+    const { error: updateAllowlistError } = await supabase
+      .from("family_email_allowlist")
+      .update({
+        joined_user_id: matchedProfile.id,
+        joined_at: new Date().toISOString()
+      })
+      .eq("id", allowlistId);
+
+    if (updateAllowlistError) {
+      return {
+        status: "error",
+        message: `사용자 연결 상태 저장에 실패했습니다: ${updateAllowlistError.message}`
+      };
+    }
+
+    suffix = "이미 가입한 계정이라 바로 가족 멤버로 연결했습니다.";
+  }
+
+  revalidatePath("/");
+  revalidatePath("/calendar");
+  revalidatePath("/gifticons/new");
+  revalidatePath("/family/setup");
+
+  return {
+    status: "success",
+    message: `${email} 추가됨. ${suffix}`
+  };
+}
