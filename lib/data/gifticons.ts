@@ -1,6 +1,8 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { Gifticon, GifticonStatus } from "@/lib/types";
 
+const IMAGE_SIGNED_URL_EXPIRY_SECONDS = 60 * 60;
+
 type GifticonRow = {
   id: string;
   title: string | null;
@@ -102,22 +104,28 @@ export async function fetchCurrentUserGifticons(): Promise<GifticonQueryResult> 
       .flatMap((row) => row.gifticon_images ?? [])
       .map((image) => image.storage_path)
       .filter((path) => Boolean(path));
+    const uniqueStoragePaths = Array.from(new Set(storagePaths));
 
     const signedUrlMap = new Map<string, string>();
 
-    if (storagePaths.length > 0) {
-      const { data: signedUrls, error: signedUrlError } = await supabase.storage
-        .from("gifticon-images")
-        .createSignedUrls(storagePaths, 60 * 60);
+    if (uniqueStoragePaths.length > 0) {
+      await Promise.all(
+        uniqueStoragePaths.map(async (storagePath) => {
+          const { data: originalUrlData, error: originalUrlError } = await supabase.storage
+            .from("gifticon-images")
+            .createSignedUrl(storagePath, IMAGE_SIGNED_URL_EXPIRY_SECONDS);
 
-      if (!signedUrlError && signedUrls) {
-        signedUrls.forEach((entry, index) => {
-          const storagePath = storagePaths[index];
-          if (storagePath && entry?.signedUrl) {
-            signedUrlMap.set(storagePath, entry.signedUrl);
+          if (!originalUrlError && originalUrlData?.signedUrl) {
+            signedUrlMap.set(storagePath, originalUrlData.signedUrl);
+            return;
           }
-        });
-      }
+
+          console.error("gifticon image signed url failed:", {
+            storagePath,
+            originalUrlError: originalUrlError?.message ?? null
+          });
+        })
+      );
     }
 
     return {

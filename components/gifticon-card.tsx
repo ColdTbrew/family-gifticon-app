@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { markGifticonAvailable, markGifticonUsed } from "@/app/gifticons/actions";
-import { parseDateOnly, toDateInputValue } from "@/lib/date";
+import { formatKoreanDateTime, parseDateOnly, toDateInputValue } from "@/lib/date";
 import { Gifticon } from "@/lib/types";
 
 type GifticonCardProps = {
@@ -17,13 +17,7 @@ export function GifticonCard({ item, ddayLabel }: GifticonCardProps) {
   const isUsed = item.status === "used";
   const action = isUsed ? markGifticonAvailable : markGifticonUsed;
   const actionLabel = isUsed ? "사용 완료 취소" : "사용 완료";
-  const usedLabel =
-    isUsed && item.usedAt
-      ? new Intl.DateTimeFormat("ko-KR", {
-          dateStyle: "medium",
-          timeStyle: "short"
-        }).format(new Date(item.usedAt))
-      : null;
+  const usedLabel = isUsed && item.usedAt ? formatKoreanDateTime(item.usedAt) : null;
 
   return (
     <>
@@ -74,39 +68,39 @@ export function GifticonCard({ item, ddayLabel }: GifticonCardProps) {
 
       {isPreviewOpen && item.imageUrl ? (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[#0f172acc] p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#0f172acc] p-3 sm:p-4"
           onClick={() => setIsPreviewOpen(false)}
           role="dialog"
           aria-modal="true"
           aria-label={`${item.title} 이미지 미리보기`}
         >
           <div
-            className="w-full max-w-3xl rounded-[1.75rem] bg-white p-4 shadow-2xl"
+            className="flex max-h-[calc(100vh-1.5rem)] w-full max-w-3xl flex-col rounded-[1.75rem] bg-white p-3 shadow-2xl sm:max-h-[calc(100vh-2rem)] sm:p-4"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="mb-3 flex items-start justify-between gap-4">
+            <div className="mb-3 flex shrink-0 items-start justify-between gap-3">
               <div>
-                <p className="text-lg font-bold text-ink">{item.title}</p>
-                <p className="mt-1 text-sm text-muted">
+                <p className="text-base font-bold text-ink sm:text-lg">{item.title}</p>
+                <p className="mt-1 text-xs text-muted sm:text-sm">
                   {item.brand} · 만료 {toDateInputValue(parseDateOnly(item.expiresAt))}
                 </p>
               </div>
               <button
                 type="button"
-                className="rounded-xl border border-line px-3 py-2 text-sm font-semibold text-ink transition hover:bg-slate-50"
+                className="shrink-0 rounded-xl border border-line px-3 py-2 text-sm font-semibold text-ink transition hover:bg-slate-50"
                 onClick={() => setIsPreviewOpen(false)}
               >
                 닫기
               </button>
             </div>
 
-            <div className="overflow-hidden rounded-[1.25rem] border border-line bg-slate-50">
+            <div className="min-h-0 flex-1 overflow-auto rounded-[1.25rem] border border-line bg-slate-50">
               <Image
                 src={item.imageUrl}
                 alt={`${item.title} 등록 이미지`}
                 width={1400}
                 height={1400}
-                className="h-auto w-full object-contain"
+                className="h-auto max-h-[calc(100vh-9rem)] w-full object-contain sm:max-h-[calc(100vh-10rem)]"
                 unoptimized
               />
             </div>
