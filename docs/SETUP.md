@@ -17,7 +17,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key>
 1. Supabase 프로젝트 생성
 2. SQL Editor에서 `supabase/migrations/20260301150000_init.sql` 실행
 3. SQL Editor에서 `supabase/migrations/20260315194000_gifticon_storage.sql` 실행
-4. `Auth > URL Configuration` 설정
+4. SQL Editor에서 `supabase/migrations/20260315195500_create_family_rpc.sql` 실행
+5. `Auth > URL Configuration` 설정
 - Site URL: `http://localhost:3000`
 - Redirect URLs: `http://localhost:3000/**`, `http://localhost:3001/**`, 배포 URL (`https://<your-domain>/**`)
 

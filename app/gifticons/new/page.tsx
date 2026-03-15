@@ -47,6 +47,12 @@ export default async function NewGifticonPage() {
           <p className="text-base text-muted">
             현재 로그인한 계정이 어떤 가족 그룹에도 속해 있지 않아 기프티콘을 저장할 수 없습니다. 가족 생성/초대 흐름을 먼저 붙이거나, Supabase에서 `family_members` 데이터가 연결되어 있는지 확인해주세요.
           </p>
+          <Link
+            className="mt-4 inline-flex rounded-xl border border-[#2f5ec4] px-3 py-2 font-semibold text-[#2f5ec4] transition hover:bg-[#f1f6ff]"
+            href="/family/setup"
+          >
+            가족 그룹 만들기
+          </Link>
         </div>
       </section>
     );

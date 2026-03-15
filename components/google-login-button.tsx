@@ -25,11 +25,15 @@ export function GoogleLoginButton() {
   }
 
   return (
-    <div className="auth-box">
-      <button type="button" className="google-login-button" onClick={handleLogin}>
+    <div className="rounded-3xl border border-line bg-white p-4 shadow-panel">
+      <button
+        type="button"
+        className="w-full rounded-2xl border border-[#1f4287] bg-[#2f5ec4] px-4 py-3 text-[0.95rem] font-bold text-white transition hover:bg-[#264eaa]"
+        onClick={handleLogin}
+      >
         Google 계정으로 로그인
       </button>
-      {errorMessage ? <p className="auth-error">{errorMessage}</p> : null}
+      {errorMessage ? <p className="mt-3 text-sm text-danger">{errorMessage}</p> : null}
     </div>
   );
 }

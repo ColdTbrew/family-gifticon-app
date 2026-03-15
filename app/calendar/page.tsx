@@ -42,44 +42,47 @@ export default async function CalendarPage() {
   const totalVisible = Array.from(byDate.values()).reduce((sum, items) => sum + items.length, 0);
 
   return (
-    <section>
-      <header className="page-header">
-        <p className="eyebrow">날짜별 확인</p>
-        <h1>만료 캘린더</h1>
-        <p className="muted">
+    <section className="space-y-6">
+      <header className="mb-5 space-y-1.5">
+        <p className="text-sm font-semibold text-brand">날짜별 확인</p>
+        <h1 className="text-3xl font-bold tracking-tight text-ink">만료 캘린더</h1>
+        <p className="text-base text-muted">
           월간 뷰에서 날짜를 보고, 각 날짜에 끝나는 기프티콘 개수를 바로 확인합니다.
         </p>
       </header>
 
-      {!isAuthenticated ? (
-        <div className="notice-card">
-          <p className="notice-title">로그인이 필요합니다.</p>
-          <p className="muted">캘린더를 보려면 먼저 Google 로그인 해주세요.</p>
-          <Link className="action-link" href="/auth">
+      {errorMessage ? (
+        <div className="max-w-xl rounded-3xl border border-line bg-white p-5 shadow-panel">
+          <p className="mb-2 text-base font-bold text-ink">캘린더 데이터를 불러오지 못했습니다.</p>
+          <p className="text-base text-muted">{errorMessage}</p>
+        </div>
+      ) : !isAuthenticated ? (
+        <div className="max-w-xl rounded-3xl border border-line bg-white p-5 shadow-panel">
+          <p className="mb-2 text-base font-bold text-ink">로그인이 필요합니다.</p>
+          <p className="text-base text-muted">캘린더를 보려면 먼저 Google 로그인 해주세요.</p>
+          <Link
+            className="mt-4 inline-flex rounded-xl border border-[#2f5ec4] px-3 py-2 font-semibold text-[#2f5ec4] transition hover:bg-[#f1f6ff]"
+            href="/auth"
+          >
             로그인하러 가기
           </Link>
         </div>
-      ) : errorMessage ? (
-        <div className="notice-card">
-          <p className="notice-title">캘린더 데이터를 불러오지 못했습니다.</p>
-          <p className="muted">{errorMessage}</p>
-        </div>
       ) : totalVisible === 0 ? (
-        <div className="notice-card">
-          <p className="notice-title">표시할 만료 일정이 없습니다.</p>
-          <p className="muted">사용 가능한 기프티콘을 등록하면 날짜별로 표시됩니다.</p>
+        <div className="max-w-xl rounded-3xl border border-line bg-white p-5 shadow-panel">
+          <p className="mb-2 text-base font-bold text-ink">표시할 만료 일정이 없습니다.</p>
+          <p className="text-base text-muted">사용 가능한 기프티콘을 등록하면 날짜별로 표시됩니다.</p>
         </div>
       ) : (
-        <div className="calendar-grid">
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 lg:grid-cols-7">
           {days.map((day) => {
             const key = toDateInputValue(day);
             const items = byDate.get(key) ?? [];
             return (
-              <article key={key} className="calendar-cell">
-                <strong>{day.getDate()}</strong>
-                <span className="calendar-count">{items.length}개</span>
+              <article key={key} className="min-h-[90px] rounded-2xl border border-line bg-white p-3 shadow-sm lg:min-h-[110px]">
+                <strong className="text-sm font-bold text-ink">{day.getDate()}</strong>
+                <span className="mb-2 mt-1 block text-xs text-muted">{items.length}개</span>
                 {items.slice(0, 2).map((item) => (
-                  <span key={item.id} className="calendar-item">
+                  <span key={item.id} className="mb-1 block text-xs text-ink">
                     {item.title}
                   </span>
                 ))}

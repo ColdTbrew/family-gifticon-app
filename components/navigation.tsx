@@ -22,6 +22,12 @@ export function Navigation() {
           </Link>
           <Link
             className="rounded-full border border-transparent px-3 py-2 text-sm font-medium text-muted transition hover:border-line hover:bg-slate-50 hover:text-ink"
+            href="/family/setup"
+          >
+            가족
+          </Link>
+          <Link
+            className="rounded-full border border-transparent px-3 py-2 text-sm font-medium text-muted transition hover:border-line hover:bg-slate-50 hover:text-ink"
             href="/gifticons/new"
           >
             등록
