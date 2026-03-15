@@ -8,6 +8,12 @@ type GifticonRow = {
   barcode: string | null;
   expires_at: string;
   status: GifticonStatus;
+  used_at: string | null;
+  gifticon_images:
+    | {
+        storage_path: string;
+      }[]
+    | null;
 };
 
 export type GifticonQueryResult = {
@@ -43,7 +49,9 @@ function mapGifticonRow(row: GifticonRow): Gifticon {
     brand: row.brand,
     barcode: row.barcode || "",
     expiresAt: row.expires_at,
-    status: row.status
+    status: row.status,
+    imageUrl: null,
+    usedAt: row.used_at
   };
 }
 
@@ -78,7 +86,7 @@ export async function fetchCurrentUserGifticons(): Promise<GifticonQueryResult> 
 
     const { data, error } = await supabase
       .from("gifticons")
-      .select("id,title,brand,barcode,expires_at,status")
+      .select("id,title,brand,barcode,expires_at,status,used_at,gifticon_images(storage_path)")
       .order("expires_at", { ascending: true });
 
     if (error) {
@@ -90,8 +98,37 @@ export async function fetchCurrentUserGifticons(): Promise<GifticonQueryResult> 
     }
 
     const rows = (data ?? []) as GifticonRow[];
+    const storagePaths = rows
+      .flatMap((row) => row.gifticon_images ?? [])
+      .map((image) => image.storage_path)
+      .filter((path) => Boolean(path));
+
+    const signedUrlMap = new Map<string, string>();
+
+    if (storagePaths.length > 0) {
+      const { data: signedUrls, error: signedUrlError } = await supabase.storage
+        .from("gifticon-images")
+        .createSignedUrls(storagePaths, 60 * 60);
+
+      if (!signedUrlError && signedUrls) {
+        signedUrls.forEach((entry, index) => {
+          const storagePath = storagePaths[index];
+          if (storagePath && entry?.signedUrl) {
+            signedUrlMap.set(storagePath, entry.signedUrl);
+          }
+        });
+      }
+    }
+
     return {
-      gifticons: rows.map(mapGifticonRow),
+      gifticons: rows.map((row) => {
+        const mapped = mapGifticonRow(row);
+        const firstImage = row.gifticon_images?.[0];
+        return {
+          ...mapped,
+          imageUrl: firstImage ? signedUrlMap.get(firstImage.storage_path) ?? null : null
+        };
+      }),
       isAuthenticated: true,
       errorMessage: null
     };

@@ -45,6 +45,13 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
     return daysUntil(item.expiresAt, now) > 7;
   });
+  const usedGifticons = gifticons
+    .filter((item) => item.status === "used")
+    .sort((a, b) => {
+      const aTime = a.usedAt ? new Date(a.usedAt).getTime() : 0;
+      const bTime = b.usedAt ? new Date(b.usedAt).getTime() : 0;
+      return bTime - aTime;
+    });
   const hasItems = urgency.today.length + urgency.soon.length + urgency.caution.length > 0;
   const hasAnyAvailable = gifticons.some((item) => item.status === "available");
 
@@ -91,6 +98,29 @@ export default async function HomePage({ searchParams }: HomePageProps) {
               </div>
               <div className="flex flex-col gap-2.5">
                 {longTermGifticons.map((item) => (
+                  <GifticonCard
+                    key={item.id}
+                    item={item}
+                    ddayLabel={`D-${daysUntil(item.expiresAt, now)}`}
+                  />
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          {usedGifticons.length > 0 ? (
+            <section className="rounded-[1.25rem] border border-line bg-white p-4 shadow-panel">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-base font-semibold text-ink">사용 완료</h2>
+                  <p className="mt-1 text-sm text-muted">이미 사용 처리한 기프티콘입니다. 필요하면 다시 되돌릴 수 있습니다.</p>
+                </div>
+                <span className="rounded-full bg-[#fff3dc] px-2.5 py-1 text-xs font-semibold text-[#8a5b12]">
+                  {usedGifticons.length}개
+                </span>
+              </div>
+              <div className="flex flex-col gap-2.5">
+                {usedGifticons.map((item) => (
                   <GifticonCard
                     key={item.id}
                     item={item}

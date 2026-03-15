@@ -3,6 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+function revalidateGifticonViews() {
+  revalidatePath("/");
+  revalidatePath("/calendar");
+  revalidatePath("/gifticons/new");
+}
+
 export async function markGifticonUsed(formData: FormData) {
   const gifticonIdValue = formData.get("gifticonId");
   const gifticonId = typeof gifticonIdValue === "string" ? gifticonIdValue.trim() : "";
@@ -46,7 +52,51 @@ export async function markGifticonUsed(formData: FormData) {
     console.error("gifticon used event failed:", eventError.message);
   }
 
-  revalidatePath("/");
-  revalidatePath("/calendar");
-  revalidatePath("/gifticons/new");
+  revalidateGifticonViews();
+}
+
+export async function markGifticonAvailable(formData: FormData) {
+  const gifticonIdValue = formData.get("gifticonId");
+  const gifticonId = typeof gifticonIdValue === "string" ? gifticonIdValue.trim() : "";
+
+  if (!gifticonId) {
+    return;
+  }
+
+  const supabase = createSupabaseServerClient();
+  const { data: authData, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !authData.user) {
+    return;
+  }
+
+  const { error: updateError } = await supabase
+    .from("gifticons")
+    .update({
+      status: "available",
+      used_at: null,
+      used_by: null
+    })
+    .eq("id", gifticonId)
+    .eq("status", "used");
+
+  if (updateError) {
+    console.error("markGifticonAvailable failed:", updateError.message);
+    return;
+  }
+
+  const { error: eventError } = await supabase.from("gifticon_events").insert({
+    gifticon_id: gifticonId,
+    event_type: "updated",
+    actor_id: authData.user.id,
+    payload: {
+      status: "available"
+    }
+  });
+
+  if (eventError) {
+    console.error("gifticon available event failed:", eventError.message);
+  }
+
+  revalidateGifticonViews();
 }

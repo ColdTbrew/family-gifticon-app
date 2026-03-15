@@ -7,4 +7,6 @@ export type Gifticon = {
   barcode: string;
   expiresAt: string;
   status: GifticonStatus;
+  imageUrl: string | null;
+  usedAt: string | null;
 };
