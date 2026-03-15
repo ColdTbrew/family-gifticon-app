@@ -1,6 +1,12 @@
 import Link from "next/link";
+import { FamilyInviteForm } from "@/components/family-invite-form";
+import { FamilyJoinForm } from "@/components/family-join-form";
 import { FamilySetupForm } from "@/components/family-setup-form";
-import { fetchCurrentUserFamilies } from "@/lib/data/families";
+import {
+  fetchCurrentUserActiveInvites,
+  fetchCurrentUserFamilies,
+  fetchCurrentUserOwnedFamilies
+} from "@/lib/data/families";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -9,6 +15,8 @@ export default async function FamilySetupPage() {
   const supabase = createSupabaseServerClient();
   const { data: authData } = await supabase.auth.getUser();
   const families = await fetchCurrentUserFamilies();
+  const ownedFamilies = await fetchCurrentUserOwnedFamilies();
+  const activeInvites = await fetchCurrentUserActiveInvites();
 
   if (!authData.user) {
     return (
@@ -42,21 +50,55 @@ export default async function FamilySetupPage() {
           <p className="text-base text-muted">지금은 새 그룹보다 기존 가족에서 기프티콘 등록을 바로 시작하는 편이 좋습니다.</p>
         </header>
 
-        <div className="max-w-2xl rounded-[1.75rem] border border-line bg-white p-5 shadow-panel">
-          <p className="mb-2 text-base font-bold text-ink">현재 연결된 가족</p>
-          <ul className="space-y-2 text-sm text-muted">
-            {families.map((family) => (
-              <li key={family.id}>
-                {family.name} ({family.role})
-              </li>
-            ))}
-          </ul>
-          <Link
-            className="mt-4 inline-flex rounded-xl border border-[#2f5ec4] px-3 py-2 font-semibold text-[#2f5ec4] transition hover:bg-[#f1f6ff]"
-            href="/gifticons/new"
-          >
-            기프티콘 등록하러 가기
-          </Link>
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.95fr)]">
+          <div className="space-y-6">
+            <div className="rounded-[1.75rem] border border-line bg-white p-5 shadow-panel">
+              <p className="mb-2 text-base font-bold text-ink">현재 연결된 가족</p>
+              <ul className="space-y-2 text-sm text-muted">
+                {families.map((family) => (
+                  <li key={family.id}>
+                    {family.name} ({family.role})
+                  </li>
+                ))}
+              </ul>
+              <Link
+                className="mt-4 inline-flex rounded-xl border border-[#2f5ec4] px-3 py-2 font-semibold text-[#2f5ec4] transition hover:bg-[#f1f6ff]"
+                href="/gifticons/new"
+              >
+                기프티콘 등록하러 가기
+              </Link>
+            </div>
+
+            <FamilyInviteForm ownedFamilies={ownedFamilies} />
+          </div>
+
+          <div className="space-y-6">
+            <FamilyJoinForm />
+
+            <div className="rounded-[1.75rem] border border-line bg-white p-5 shadow-panel">
+              <h2 className="text-base font-bold text-ink">현재 유효한 가족 코드</h2>
+              <p className="mt-2 text-sm text-muted">owner가 만든 최신 코드를 가족에게 보내주세요.</p>
+              {activeInvites.length > 0 ? (
+                <div className="mt-4 space-y-3">
+                  {activeInvites.map((invite) => (
+                    <article key={invite.id} className="rounded-2xl border border-line bg-slate-50/80 p-4">
+                      <p className="text-sm font-semibold text-ink">{invite.familyName}</p>
+                      <p className="mt-2 text-lg font-black tracking-[0.2em] text-[#244aa5]">{invite.inviteCode}</p>
+                      <p className="mt-2 text-xs text-muted">
+                        만료:{" "}
+                        {new Intl.DateTimeFormat("ko-KR", {
+                          dateStyle: "medium",
+                          timeStyle: "short"
+                        }).format(new Date(invite.expiresAt))}
+                      </p>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-4 text-sm text-muted">아직 활성화된 가족 코드가 없습니다.</p>
+              )}
+            </div>
+          </div>
         </div>
       </section>
     );
@@ -70,19 +112,23 @@ export default async function FamilySetupPage() {
         <p className="text-base text-muted">먼저 가족 그룹을 만든 뒤, 그 그룹에 기프티콘을 쌓아가면 됩니다.</p>
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(280px,0.9fr)]">
-        <FamilySetupForm />
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.95fr)]">
+        <div className="space-y-6">
+          <FamilySetupForm />
 
-        <aside className="space-y-4 rounded-[1.75rem] border border-line bg-white p-5 shadow-panel">
-          <div>
-            <h2 className="text-base font-bold text-ink">어떻게 쓰이나요?</h2>
-            <p className="mt-2 text-sm text-muted">가족 그룹은 기프티콘 데이터와 이미지 접근 권한의 기본 단위입니다.</p>
-          </div>
-          <div>
-            <h2 className="text-base font-bold text-ink">생성 후 다음 단계</h2>
-            <p className="mt-2 text-sm text-muted">가족이 만들어지면 바로 owner 멤버십이 연결되고, 곧바로 기프티콘 등록을 시작할 수 있습니다.</p>
-          </div>
-        </aside>
+          <aside className="space-y-4 rounded-[1.75rem] border border-line bg-white p-5 shadow-panel">
+            <div>
+              <h2 className="text-base font-bold text-ink">어떻게 쓰이나요?</h2>
+              <p className="mt-2 text-sm text-muted">가족 그룹은 기프티콘 데이터와 이미지 접근 권한의 기본 단위입니다.</p>
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-ink">생성 후 다음 단계</h2>
+              <p className="mt-2 text-sm text-muted">가족이 만들어지면 바로 owner 멤버십이 연결되고, 곧바로 기프티콘 등록을 시작할 수 있습니다.</p>
+            </div>
+          </aside>
+        </div>
+
+        <FamilyJoinForm />
       </div>
     </section>
   );
