@@ -78,7 +78,7 @@ export function GifticonUploadForm({ families }: GifticonUploadFormProps) {
         </label>
 
         <label className="space-y-2">
-          <span className="text-sm font-semibold text-ink">브랜드</span>
+          <span className="text-sm font-semibold text-ink">브랜드 (필수)</span>
           <input
             className="w-full rounded-2xl border border-line bg-slate-50 px-4 py-3 text-sm text-ink outline-none transition focus:border-[#2f5ec4] focus:bg-white"
             name="brand"
@@ -88,17 +88,16 @@ export function GifticonUploadForm({ families }: GifticonUploadFormProps) {
         </label>
 
         <label className="space-y-2">
-          <span className="text-sm font-semibold text-ink">기프티콘 이름</span>
+          <span className="text-sm font-semibold text-ink">기프티콘 이름 (선택)</span>
           <input
             className="w-full rounded-2xl border border-line bg-slate-50 px-4 py-3 text-sm text-ink outline-none transition focus:border-[#2f5ec4] focus:bg-white"
             name="title"
-            placeholder="예: 카페 아메리카노 T"
-            required
+            placeholder="예: 카페 아메리카노 T, 없으면 자동 이름으로 저장"
           />
         </label>
 
         <label className="space-y-2">
-          <span className="text-sm font-semibold text-ink">만료일</span>
+          <span className="text-sm font-semibold text-ink">만료일 (필수)</span>
           <input
             className="w-full rounded-2xl border border-line bg-slate-50 px-4 py-3 text-sm text-ink outline-none transition focus:border-[#2f5ec4] focus:bg-white"
             name="expiresAt"
@@ -108,17 +107,16 @@ export function GifticonUploadForm({ families }: GifticonUploadFormProps) {
         </label>
 
         <label className="space-y-2 md:col-span-2">
-          <span className="text-sm font-semibold text-ink">바코드 / 쿠폰번호</span>
+          <span className="text-sm font-semibold text-ink">바코드 / 쿠폰번호 (선택)</span>
           <input
             className="w-full rounded-2xl border border-line bg-slate-50 px-4 py-3 text-sm text-ink outline-none transition focus:border-[#2f5ec4] focus:bg-white"
             name="barcode"
-            placeholder="숫자 또는 영문 쿠폰번호를 입력하세요"
-            required
+            placeholder="사진만 먼저 올리고 나중에 입력해도 됩니다"
           />
         </label>
 
         <label className="space-y-2 md:col-span-2">
-          <span className="text-sm font-semibold text-ink">메모</span>
+          <span className="text-sm font-semibold text-ink">메모 (선택)</span>
           <textarea
             className="min-h-[110px] w-full rounded-2xl border border-line bg-slate-50 px-4 py-3 text-sm text-ink outline-none transition focus:border-[#2f5ec4] focus:bg-white"
             name="memo"
@@ -127,14 +125,15 @@ export function GifticonUploadForm({ families }: GifticonUploadFormProps) {
         </label>
 
         <label className="space-y-2 md:col-span-2">
-          <span className="text-sm font-semibold text-ink">이미지 업로드</span>
+          <span className="text-sm font-semibold text-ink">이미지 업로드 (필수)</span>
           <input
             className="block w-full rounded-2xl border border-dashed border-line bg-slate-50 px-4 py-3 text-sm text-muted file:mr-3 file:rounded-xl file:border-0 file:bg-[#eef3ff] file:px-3 file:py-2 file:font-semibold file:text-[#2f5ec4]"
             name="image"
             type="file"
             accept="image/png,image/jpeg,image/webp,image/heic,image/heif"
+            required
           />
-          <p className="text-xs text-muted">선택 사항입니다. JPG, PNG, WebP, HEIC 파일을 10MB 이하로 올릴 수 있습니다.</p>
+          <p className="text-xs text-muted">필수 항목입니다. JPG, PNG, WebP, HEIC 파일을 10MB 이하로 올릴 수 있습니다.</p>
         </label>
       </div>
 

@@ -3,9 +3,9 @@ import { Gifticon, GifticonStatus } from "@/lib/types";
 
 type GifticonRow = {
   id: string;
-  title: string;
+  title: string | null;
   brand: string;
-  barcode: string;
+  barcode: string | null;
   expires_at: string;
   status: GifticonStatus;
 };
@@ -39,9 +39,9 @@ function isMissingAuthSession(errorMessage: string | null | undefined): boolean 
 function mapGifticonRow(row: GifticonRow): Gifticon {
   return {
     id: row.id,
-    title: row.title,
+    title: row.title || `${row.brand} 기프티콘`,
     brand: row.brand,
-    barcode: row.barcode,
+    barcode: row.barcode || "",
     expiresAt: row.expires_at,
     status: row.status
   };

@@ -42,10 +42,17 @@ export async function createGifticon(
   const memo = getString(formData, "memo");
   const image = formData.get("image");
 
-  if (!familyId || !title || !brand || !barcode || !expiresAt) {
+  if (!familyId || !brand || !expiresAt) {
     return {
       status: "error",
-      message: "브랜드, 이름, 바코드/쿠폰번호, 만료일은 필수입니다."
+      message: "브랜드와 만료일은 필수입니다."
+    };
+  }
+
+  if (!(image instanceof File) || image.size === 0) {
+    return {
+      status: "error",
+      message: "기프티콘 사진은 필수입니다."
     };
   }
 
@@ -66,52 +73,50 @@ export async function createGifticon(
   let uploadedStoragePath: string | null = null;
   const gifticonId = crypto.randomUUID();
 
-  if (image instanceof File && image.size > 0) {
-    if (image.size > MAX_IMAGE_SIZE_BYTES) {
-      return {
-        status: "error",
-        message: "이미지는 10MB 이하만 업로드할 수 있습니다."
-      };
-    }
+  if (image.size > MAX_IMAGE_SIZE_BYTES) {
+    return {
+      status: "error",
+      message: "이미지는 10MB 이하만 업로드할 수 있습니다."
+    };
+  }
 
-    if (!isAllowedImageType(image.type)) {
-      return {
-        status: "error",
-        message: "JPG, PNG, WebP, HEIC 이미지 파일만 업로드할 수 있습니다."
-      };
-    }
+  if (!isAllowedImageType(image.type)) {
+    return {
+      status: "error",
+      message: "JPG, PNG, WebP, HEIC 이미지 파일만 업로드할 수 있습니다."
+    };
+  }
 
-    const extension = image.name.includes(".")
-      ? image.name.split(".").pop()?.toLowerCase() ?? "jpg"
-      : image.type.split("/").pop() ?? "jpg";
+  const extension = image.name.includes(".")
+    ? image.name.split(".").pop()?.toLowerCase() ?? "jpg"
+    : image.type.split("/").pop() ?? "jpg";
 
-    uploadedStoragePath = `${familyId}/${gifticonId}/original.${extension}`;
+  uploadedStoragePath = `${familyId}/${gifticonId}/original.${extension}`;
 
-    const { error: uploadError } = await supabase.storage
-      .from(GIFTICON_IMAGE_BUCKET)
-      .upload(uploadedStoragePath, image, {
-        cacheControl: "3600",
-        contentType: image.type,
-        upsert: false
-      });
+  const { error: uploadError } = await supabase.storage
+    .from(GIFTICON_IMAGE_BUCKET)
+    .upload(uploadedStoragePath, image, {
+      cacheControl: "3600",
+      contentType: image.type,
+      upsert: false
+    });
 
-    if (uploadError) {
-      return {
-        status: "error",
-        message:
-          uploadError.message.includes("Bucket not found")
-            ? "이미지 저장소가 아직 준비되지 않았습니다. Supabase 마이그레이션을 먼저 적용해주세요."
-            : `이미지 업로드에 실패했습니다: ${uploadError.message}`
-      };
-    }
+  if (uploadError) {
+    return {
+      status: "error",
+      message:
+        uploadError.message.includes("Bucket not found")
+          ? "이미지 저장소가 아직 준비되지 않았습니다. Supabase 마이그레이션을 먼저 적용해주세요."
+          : `이미지 업로드에 실패했습니다: ${uploadError.message}`
+    };
   }
 
   const { error: insertError } = await supabase.from("gifticons").insert({
     id: gifticonId,
     family_id: familyId,
-    title,
+    title: title || null,
     brand,
-    barcode,
+    barcode: barcode || null,
     expires_at: expiresAt,
     memo: memo || null,
     created_by: authData.user.id
@@ -164,8 +169,6 @@ export async function createGifticon(
 
   return {
     status: "success",
-    message: uploadedStoragePath
-      ? "기프티콘과 이미지가 함께 등록되었습니다."
-      : "기프티콘이 등록되었습니다."
+    message: "기프티콘과 이미지가 함께 등록되었습니다."
   };
 }

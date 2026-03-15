@@ -136,3 +136,106 @@ export async function joinFamilyWithCode(
       : `${result.family_name} 가족에는 이미 가입되어 있습니다.`
   };
 }
+
+export async function deleteFamily(
+  _prevState: FamilyInviteActionState,
+  formData: FormData
+): Promise<FamilyInviteActionState> {
+  const familyIdValue = formData.get("familyId");
+  const confirmationValue = formData.get("confirmation");
+  const familyId = typeof familyIdValue === "string" ? familyIdValue.trim() : "";
+  const confirmation = typeof confirmationValue === "string" ? confirmationValue.trim() : "";
+
+  if (!familyId) {
+    return {
+      status: "error",
+      message: "삭제할 가족을 선택해주세요."
+    };
+  }
+
+  if (confirmation !== "삭제") {
+    return {
+      status: "error",
+      message: '확인 문구로 "삭제"를 정확히 입력해주세요.'
+    };
+  }
+
+  const supabase = createSupabaseServerClient();
+  const { data: authData, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !authData.user) {
+    return {
+      status: "error",
+      message: "로그인 후 가족을 삭제할 수 있습니다."
+    };
+  }
+
+  const { data: familyMembership, error: membershipError } = await supabase
+    .from("family_members")
+    .select("role")
+    .eq("family_id", familyId)
+    .eq("user_id", authData.user.id)
+    .maybeSingle();
+
+  if (membershipError || !familyMembership || familyMembership.role !== "owner") {
+    return {
+      status: "error",
+      message: "가족 owner만 삭제할 수 있습니다."
+    };
+  }
+
+  const { data: gifticonRows, error: gifticonError } = await supabase
+    .from("gifticons")
+    .select("id")
+    .eq("family_id", familyId);
+
+  if (!gifticonError && gifticonRows && gifticonRows.length > 0) {
+    const gifticonIds = gifticonRows
+      .map((row) => (typeof row.id === "string" ? row.id : null))
+      .filter((id): id is string => Boolean(id));
+
+    if (gifticonIds.length > 0) {
+      const { data: imageRows, error: imageError } = await supabase
+        .from("gifticon_images")
+        .select("storage_path")
+        .in("gifticon_id", gifticonIds);
+
+      if (!imageError && imageRows && imageRows.length > 0) {
+        const paths = imageRows
+          .map((row) => (typeof row.storage_path === "string" ? row.storage_path : null))
+          .filter((path): path is string => Boolean(path));
+
+        if (paths.length > 0) {
+          const { error: storageDeleteError } = await supabase.storage
+            .from("gifticon-images")
+            .remove(paths);
+          if (storageDeleteError) {
+            return {
+              status: "error",
+              message: `이미지 파일 삭제에 실패했습니다: ${storageDeleteError.message}`
+            };
+          }
+        }
+      }
+    }
+  }
+
+  const { error: deleteError } = await supabase.from("families").delete().eq("id", familyId);
+
+  if (deleteError) {
+    return {
+      status: "error",
+      message: `가족 삭제에 실패했습니다: ${deleteError.message}`
+    };
+  }
+
+  revalidatePath("/");
+  revalidatePath("/calendar");
+  revalidatePath("/gifticons/new");
+  revalidatePath("/family/setup");
+
+  return {
+    status: "success",
+    message: "가족이 삭제되었습니다. 이제 새 가족을 만들 수 있습니다."
+  };
+}

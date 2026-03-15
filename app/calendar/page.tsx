@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { markGifticonUsed } from "@/app/gifticons/actions";
 import { parseDateOnly, toDateInputValue } from "@/lib/date";
 import { fetchCurrentUserGifticons } from "@/lib/data/gifticons";
 import { Gifticon } from "@/lib/types";
@@ -82,9 +83,18 @@ export default async function CalendarPage() {
                 <strong className="text-sm font-bold text-ink">{day.getDate()}</strong>
                 <span className="mb-2 mt-1 block text-xs text-muted">{items.length}개</span>
                 {items.slice(0, 2).map((item) => (
-                  <span key={item.id} className="mb-1 block text-xs text-ink">
-                    {item.title}
-                  </span>
+                  <div key={item.id} className="mb-2 rounded-xl bg-slate-50/80 p-2">
+                    <span className="mb-1 block text-xs font-medium text-ink">{item.title}</span>
+                    <form action={markGifticonUsed}>
+                      <input type="hidden" name="gifticonId" value={item.id} />
+                      <button
+                        type="submit"
+                        className="rounded-lg border border-[#d3ddf7] bg-white px-2 py-1 text-[11px] font-semibold text-[#244aa5] transition hover:bg-[#eef3ff]"
+                      >
+                        사용 완료
+                      </button>
+                    </form>
+                  </div>
                 ))}
               </article>
             );

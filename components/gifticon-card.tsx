@@ -1,3 +1,4 @@
+import { markGifticonUsed } from "@/app/gifticons/actions";
 import { parseDateOnly, toDateInputValue } from "@/lib/date";
 import { Gifticon } from "@/lib/types";
 
@@ -13,6 +14,15 @@ export function GifticonCard({ item, ddayLabel }: GifticonCardProps) {
       <p className="mt-1.5 text-sm text-muted">
         {item.brand} · 만료 {toDateInputValue(parseDateOnly(item.expiresAt))} · {ddayLabel}
       </p>
+      <form action={markGifticonUsed} className="mt-3">
+        <input type="hidden" name="gifticonId" value={item.id} />
+        <button
+          type="submit"
+          className="rounded-xl border border-[#b9dcc7] bg-white px-3 py-2 text-sm font-semibold text-[#22613a] transition hover:bg-[#f3fbf6]"
+        >
+          사용 완료
+        </button>
+      </form>
     </article>
   );
 }
