@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
 
 type CookieToSet = {
   name: string;
@@ -15,7 +16,13 @@ type CookieToSet = {
   };
 };
 
-export function createSupabaseServerClient() {
+type CreateSupabaseServerClientOptions = {
+  response?: NextResponse;
+};
+
+export function createSupabaseServerClient(
+  clientOptions: CreateSupabaseServerClientOptions = {}
+) {
   const cookieStore = cookies();
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -36,6 +43,12 @@ export function createSupabaseServerClient() {
           });
         } catch {
           // Server Components may not allow mutating cookies in this context.
+        }
+
+        if (clientOptions.response) {
+          cookiesToSet.forEach(({ name, value, options: cookieOptions }) => {
+            clientOptions.response!.cookies.set(name, value, cookieOptions);
+          });
         }
       }
     }

@@ -6,9 +6,10 @@ export async function GET(request: NextRequest) {
   const code = requestUrl.searchParams.get("code");
   const next = requestUrl.searchParams.get("next") ?? "/";
   const safeNext = next.startsWith("/") ? next : "/";
+  const response = NextResponse.redirect(new URL(safeNext, requestUrl.origin));
 
   if (code) {
-    const supabase = createSupabaseServerClient();
+    const supabase = createSupabaseServerClient({ response });
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
@@ -20,5 +21,5 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return NextResponse.redirect(new URL(safeNext, requestUrl.origin));
+  return response;
 }

@@ -16,9 +16,12 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key>
 ## 2) Supabase 초기화
 1. Supabase 프로젝트 생성
 2. SQL Editor에서 `supabase/migrations/20260301150000_init.sql` 실행
-3. `Auth > URL Configuration` 설정
+3. SQL Editor에서 `supabase/migrations/20260315194000_gifticon_storage.sql` 실행
+4. `Auth > URL Configuration` 설정
 - Site URL: `http://localhost:3000`
-- Redirect URLs: `http://localhost:3000/**`, 배포 URL (`https://<your-domain>/**`)
+- Redirect URLs: `http://localhost:3000/**`, `http://localhost:3001/**`, 배포 URL (`https://<your-domain>/**`)
+
+`next dev` 실행 중 `3000` 포트가 이미 사용 중이면 Next.js가 자동으로 `3001` 같은 다른 포트로 올라갑니다. 이 경우 현재 실행 중인 로컬 포트도 Supabase Redirect URLs에 반드시 추가해야 Google OAuth 콜백이 차단되지 않습니다.
 
 ## 3) Google OAuth 연결
 1. Google Cloud Console에서 OAuth Client(웹 애플리케이션) 생성
@@ -36,11 +39,12 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key>
 ## 5) 다음 구현 포인트
 - 로그인 후 가족 미가입 사용자 온보딩 (가족 생성/초대 선택 화면)
 - 가족 생성/초대 코드 API
-- 기프티콘 CRUD + Storage 업로드 연동
+- 사용 완료 처리 + 바코드/이미지 상세 보기
 
 ## 6) 참고
 - 로그인만 완료한 초기 상태에서는 홈/캘린더에 표시할 기프티콘이 없어 빈 화면 안내가 보일 수 있습니다.
 - `gifticons` 데이터는 가족 생성/멤버십 연결 후 표시됩니다.
+- 이미지 업로드를 쓰려면 `gifticon-images` Storage 버킷과 정책이 필요하며, 위의 스토리지 마이그레이션이 이를 생성합니다.
 
 ## 7) 가족 이메일 사전 등록 (Google 계정)
 - 목적: 가족의 Google 이메일을 미리 등록해두고, 해당 계정으로 로그인하면 자동으로 가족 멤버에 합류
