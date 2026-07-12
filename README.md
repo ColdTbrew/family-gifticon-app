@@ -11,6 +11,7 @@
 ## 현재 상태
 - Web(PWA) + Google OAuth 기반 MVP 스캐폴딩 완료
 - 홈/캘린더 화면은 Supabase `gifticons` 테이블 실데이터 조회로 동작
+- 기기별 웹 푸시 구독과 D-7/D-3/D-1 만료 알림 예약 발송 지원
 
 ## 문서
 - `docs/PRD.md` : 제품 기획 요약
@@ -37,6 +38,13 @@ npm run dev
 - `/` : 만료 임박 우선 홈 (`오늘 만료`, `D-1~3`, `D-4~7`)
 - `/calendar` : 월간 만료 캘린더
 - `/auth` : Google OAuth 로그인 시작
+
+## 만료 알림
+- 로그인 후 홈의 `알림 받기`에서 현재 기기의 웹 푸시를 켭니다.
+- Android는 지원 브라우저에서 바로 권한을 요청할 수 있습니다.
+- iPhone/iPad는 홈 화면에 추가한 웹 앱에서 알림을 켤 수 있습니다.
+- 매일 09:00 KST에 사용 가능한 기프티콘의 D-7, D-3, D-1 알림을 한 번씩 발송합니다.
+- DB 마이그레이션, VAPID 키, Vercel 환경 변수 설정은 `docs/SETUP.md`를 참고하세요.
 
 ## 기술 스택
 - Frontend: Next.js (App Router, TypeScript)
