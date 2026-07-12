@@ -41,6 +41,17 @@
 7. 만료 임박 알림 로직
 8. PWA 설치/아이콘/manifest 정리
 
+## 8) 웹 푸시 만료 알림
+- 브라우저: Web Push 표준 + Service Worker
+- 인증: VAPID 공개키/비공개키
+- 구독 저장: `push_subscriptions` (사용자별 복수 기기 허용)
+- 발송 이력: `notification_deliveries`의 복합 unique 제약으로 중복 방지
+- 예약 실행: Vercel Cron이 매일 00:00 UTC(09:00 KST)에 보호된 API 호출
+- 발송 대상: `status = available`이고 만료일이 D-7, D-3, D-1인 기프티콘
+- 수신 대상: 해당 기프티콘 가족에 속하며 알림 구독이 있는 모든 구성원 기기
+- 만료되거나 해지된 push endpoint(HTTP 404/410)는 자동 삭제
+- VAPID 비공개키, Supabase service role key, cron secret은 서버 환경 변수로만 관리
+
 ## 6) 임박 우선 규칙 (핵심)
 - 기본 정렬: `expires_at ASC`
 - 홈 우선 노출:

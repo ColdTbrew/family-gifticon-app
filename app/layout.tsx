@@ -5,7 +5,13 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Family Gifticon",
-  description: "가족이 함께 관리하는 기프티콘 앱"
+  description: "가족이 함께 관리하는 기프티콘 앱",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "가족 기프티콘"
+  }
 };
 
 type RootLayoutProps = {

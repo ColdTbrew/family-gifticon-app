@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { daysUntil } from "@/lib/date";
 import { GifticonCard } from "@/components/gifticon-card";
+import { PushNotificationControl } from "@/components/push-notification-control";
 import { UrgencyBoard } from "@/components/urgency-board";
 import { fetchCurrentUserGifticons } from "@/lib/data/gifticons";
 import { buildUrgencyBuckets } from "@/lib/urgency";
@@ -65,6 +66,12 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           먼저 써야 하는 쿠폰부터 보여줍니다. 기본 정렬은 만료일 오름차순입니다.
         </p>
       </header>
+
+      {isAuthenticated ? (
+        <PushNotificationControl
+          vapidPublicKey={process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ?? ""}
+        />
+      ) : null}
 
       {errorMessage ? (
         <div className="max-w-xl rounded-3xl border border-line bg-white p-5 shadow-panel">
