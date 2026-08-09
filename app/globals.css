@@ -1,21 +1,103 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+:root {
+  --background: 216 38% 97%;
+  --foreground: 214 47% 14%;
+  --card: 0 0% 100%;
+  --card-foreground: 214 47% 14%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 214 47% 14%;
+  --primary: 211 100% 41%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 222 100% 97%;
+  --secondary-foreground: 221 64% 39%;
+  --muted: 210 29% 96%;
+  --muted-foreground: 211 15% 42%;
+  --accent: 218 100% 97%;
+  --accent-foreground: 211 100% 34%;
+  --destructive: 354 65% 48%;
+  --destructive-foreground: 0 0% 100%;
+  --success: 151 59% 30%;
+  --success-foreground: 0 0% 100%;
+  --warning: 31 100% 46%;
+  --warning-foreground: 31 100% 17%;
+  --border: 212 26% 89%;
+  --input: 212 26% 89%;
+  --ring: 211 100% 41%;
+  --radius: 1rem;
+}
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-success: hsl(var(--success));
+  --color-success-foreground: hsl(var(--success-foreground));
+  --color-warning: hsl(var(--warning));
+  --color-warning-foreground: hsl(var(--warning-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-canvas: hsl(var(--background));
+  --color-surface: hsl(var(--card));
+  --color-line: hsl(var(--border));
+  --color-ink: hsl(var(--foreground));
+  --color-brand: hsl(var(--primary));
+  --color-danger: hsl(var(--destructive));
+  --color-caution: hsl(var(--warning));
+
+  --font-sans: "Pretendard", "Noto Sans KR", sans-serif;
+  --font-heading: "Pretendard", "Noto Sans KR", sans-serif;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --shadow-panel: 0 16px 40px rgb(19 34 53 / 8%);
+}
+
+@utility bg-page-glow {
+  background-image:
+    radial-gradient(circle at 15% 20%, #e0f0ff, transparent 40%),
+    radial-gradient(circle at 90% 0%, #ffe8e4, transparent 32%);
+}
 
 @layer base {
   * {
     box-sizing: border-box;
+    @apply border-border;
   }
 
   html {
     min-height: 100%;
+    @apply font-sans;
   }
 
   body {
-    @apply min-h-screen bg-canvas bg-page-glow bg-no-repeat font-sans text-ink antialiased;
+    @apply min-h-screen bg-background bg-page-glow bg-no-repeat font-sans text-foreground antialiased;
   }
 
   a {
     @apply text-inherit no-underline;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
   }
 }
