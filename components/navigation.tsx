@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { signOut } from "@/app/auth/actions";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth/current-user";
 
 function toUserLabel(email: string | null | undefined, fullName: string | null | undefined) {
   if (fullName && fullName.trim()) {
@@ -15,8 +15,7 @@ function toUserLabel(email: string | null | undefined, fullName: string | null |
 }
 
 export async function Navigation() {
-  const supabase = createSupabaseServerClient();
-  const { data } = await supabase.auth.getUser();
+  const { data } = await getCurrentUser();
   const user = data.user;
   const userLabel = toUserLabel(user?.email, user?.user_metadata?.name as string | undefined);
 

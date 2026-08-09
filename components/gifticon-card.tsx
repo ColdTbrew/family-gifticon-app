@@ -15,6 +15,7 @@ export function GifticonCard({ item, ddayLabel }: GifticonCardProps) {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const previewImageUrl = item.imageUrl;
   const canPreview = Boolean(previewImageUrl);
+  const skipImageOptimization = previewImageUrl ? needsOriginalImage(previewImageUrl) : false;
   const isUsed = item.status === "used";
   const action = isUsed ? markGifticonAvailable : markGifticonUsed;
   const actionLabel = isUsed ? "사용 완료 취소" : "사용 완료";
@@ -72,8 +73,9 @@ export function GifticonCard({ item, ddayLabel }: GifticonCardProps) {
                 alt={`${item.title} 썸네일`}
                 width={88}
                 height={116}
+                sizes="(max-width: 640px) 64px, 80px"
                 className="h-full min-h-20 w-16 object-cover sm:min-h-24 sm:w-20"
-                unoptimized
+                unoptimized={skipImageOptimization}
               />
             </div>
           ) : null}
@@ -114,8 +116,9 @@ export function GifticonCard({ item, ddayLabel }: GifticonCardProps) {
                 alt={`${item.title} 등록 이미지`}
                 width={1400}
                 height={1400}
+                sizes="(max-width: 768px) calc(100vw - 48px), 768px"
                 className="h-auto max-h-[calc(100vh-9rem)] w-full object-contain sm:max-h-[calc(100vh-10rem)]"
-                unoptimized
+                unoptimized={skipImageOptimization}
               />
             </div>
           </div>
@@ -123,4 +126,8 @@ export function GifticonCard({ item, ddayLabel }: GifticonCardProps) {
       ) : null}
     </>
   );
+}
+
+function needsOriginalImage(imageUrl: string): boolean {
+  return /\.(heic|heif)(?:\?|$)/i.test(imageUrl);
 }
