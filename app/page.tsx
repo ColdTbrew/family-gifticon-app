@@ -4,6 +4,7 @@ import { GifticonCard } from "@/components/gifticon-card";
 import { PageState } from "@/components/page-state";
 import { PushNotificationControl } from "@/components/push-notification-control";
 import { UrgencyBoard } from "@/components/urgency-board";
+import { UsedGifticonsSection } from "@/components/used-gifticons-section";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -32,6 +33,14 @@ function toSingleParam(value: string | string[] | undefined): string | null {
   return Array.isArray(value) ? value[0] : value;
 }
 
+function getDdayLabel(expiresAt: string, now: Date): string {
+  const remainingDays = daysUntil(expiresAt, now);
+  if (remainingDays === 0) {
+    return "D-day";
+  }
+  return remainingDays > 0 ? `D-${remainingDays}` : `D+${Math.abs(remainingDays)}`;
+}
+
 export default async function HomePage({ searchParams }: HomePageProps) {
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const oauthCode = toSingleParam(resolvedSearchParams?.code);
@@ -56,13 +65,17 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
     return daysUntil(item.expiresAt, now) > 7;
   });
-  const usedGifticons = gifticons
+  const usedGifticonEntries = gifticons
     .filter((item) => item.status === "used")
     .sort((a, b) => {
       const aTime = a.usedAt ? new Date(a.usedAt).getTime() : 0;
       const bTime = b.usedAt ? new Date(b.usedAt).getTime() : 0;
       return bTime - aTime;
-    });
+    })
+    .map((item) => ({
+      item,
+      ddayLabel: getDdayLabel(item.expiresAt, now)
+    }));
   const hasItems = urgency.today.length + urgency.soon.length + urgency.caution.length > 0;
   const hasAnyAvailable = gifticons.some((item) => item.status === "available");
 
@@ -94,60 +107,45 @@ export default async function HomePage({ searchParams }: HomePageProps) {
           description="Google 로그인 후 가족 기프티콘 데이터를 불러옵니다."
           action={{ href: "/auth", label: "로그인하러 가기" }}
         />
-      ) : hasAnyAvailable ? (
+      ) : (
         <div className="flex flex-col gap-6">
-          {hasItems ? <UrgencyBoard buckets={urgency} /> : null}
+          {hasAnyAvailable ? (
+            <>
+              {hasItems ? <UrgencyBoard buckets={urgency} /> : null}
 
-          {longTermGifticons.length > 0 ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>여유 있음</CardTitle>
-                <CardDescription>D-8 이후 만료 예정 쿠폰입니다.</CardDescription>
-                <CardAction>
-                  <Badge variant="success">{longTermGifticons.length}개</Badge>
-                </CardAction>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-3">
-                {longTermGifticons.map((item) => (
-                  <GifticonCard
-                    key={item.id}
-                    item={item}
-                    ddayLabel={`D-${daysUntil(item.expiresAt, now)}`}
-                  />
-                ))}
-              </CardContent>
-            </Card>
-          ) : null}
+              {longTermGifticons.length > 0 ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>여유 있음</CardTitle>
+                    <CardDescription>D-8 이후 만료 예정 쿠폰입니다.</CardDescription>
+                    <CardAction>
+                      <Badge variant="success">{longTermGifticons.length}개</Badge>
+                    </CardAction>
+                  </CardHeader>
+                  <CardContent className="flex flex-col gap-3">
+                    {longTermGifticons.map((item) => (
+                      <GifticonCard
+                        key={item.id}
+                        item={item}
+                        ddayLabel={getDdayLabel(item.expiresAt, now)}
+                      />
+                    ))}
+                  </CardContent>
+                </Card>
+              ) : null}
+            </>
+          ) : (
+            <PageState
+              title="사용 가능한 기프티콘이 없습니다."
+              description="새 기프티콘을 등록하거나 아래에서 사용 완료 항목을 확인할 수 있습니다."
+              action={{ href: "/gifticons/new", label: "기프티콘 등록하기" }}
+            />
+          )}
 
-          {usedGifticons.length > 0 ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>사용 완료</CardTitle>
-                <CardDescription>
-                  이미 사용 처리한 기프티콘입니다. 필요하면 다시 되돌릴 수 있습니다.
-                </CardDescription>
-                <CardAction>
-                  <Badge variant="warning">{usedGifticons.length}개</Badge>
-                </CardAction>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-3">
-                {usedGifticons.map((item) => (
-                  <GifticonCard
-                    key={item.id}
-                    item={item}
-                    ddayLabel={`D-${daysUntil(item.expiresAt, now)}`}
-                  />
-                ))}
-              </CardContent>
-            </Card>
+          {usedGifticonEntries.length > 0 ? (
+            <UsedGifticonsSection gifticons={usedGifticonEntries} />
           ) : null}
         </div>
-      ) : (
-        <PageState
-          title="등록된 기프티콘이 없습니다."
-          description="첫 기프티콘을 추가하면 홈과 캘린더에서 바로 확인할 수 있습니다."
-          action={{ href: "/gifticons/new", label: "기프티콘 등록하기" }}
-        />
       )}
     </section>
   );
