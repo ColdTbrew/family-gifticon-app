@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth/current-user";
 import { Gifticon, GifticonStatus } from "@/lib/types";
 
 const IMAGE_SIGNED_URL_EXPIRY_SECONDS = 60 * 60;
@@ -60,7 +61,7 @@ function mapGifticonRow(row: GifticonRow): Gifticon {
 export async function fetchCurrentUserGifticons(): Promise<GifticonQueryResult> {
   try {
     const supabase = createSupabaseServerClient();
-    const { data: authData, error: authError } = await supabase.auth.getUser();
+    const { data: authData, error: authError } = await getCurrentUser();
 
     if (authError) {
       if (isMissingAuthSession(authError.message)) {
@@ -89,6 +90,7 @@ export async function fetchCurrentUserGifticons(): Promise<GifticonQueryResult> 
     const { data, error } = await supabase
       .from("gifticons")
       .select("id,title,brand,barcode,expires_at,status,used_at,gifticon_images(storage_path)")
+      .in("status", ["available", "used"])
       .order("expires_at", { ascending: true });
 
     if (error) {
@@ -109,23 +111,25 @@ export async function fetchCurrentUserGifticons(): Promise<GifticonQueryResult> 
     const signedUrlMap = new Map<string, string>();
 
     if (uniqueStoragePaths.length > 0) {
-      await Promise.all(
-        uniqueStoragePaths.map(async (storagePath) => {
-          const { data: originalUrlData, error: originalUrlError } = await supabase.storage
-            .from("gifticon-images")
-            .createSignedUrl(storagePath, IMAGE_SIGNED_URL_EXPIRY_SECONDS);
+      const { data: signedUrls, error: signedUrlsError } = await supabase.storage
+        .from("gifticon-images")
+        .createSignedUrls(uniqueStoragePaths, IMAGE_SIGNED_URL_EXPIRY_SECONDS);
 
-          if (!originalUrlError && originalUrlData?.signedUrl) {
-            signedUrlMap.set(storagePath, originalUrlData.signedUrl);
+      if (signedUrlsError) {
+        console.error("gifticon image signed urls failed:", signedUrlsError.message);
+      } else {
+        signedUrls.forEach(({ error, path, signedUrl }) => {
+          if (!error && path && signedUrl) {
+            signedUrlMap.set(path, signedUrl);
             return;
           }
 
           console.error("gifticon image signed url failed:", {
-            storagePath,
-            originalUrlError: originalUrlError?.message ?? null
+            storagePath: path,
+            error
           });
-        })
-      );
+        });
+      }
     }
 
     return {

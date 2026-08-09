@@ -2,7 +2,7 @@ import Link from "next/link";
 import { signOut } from "@/app/auth/actions";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth/current-user";
 import { cn } from "@/lib/utils";
 
 function toUserLabel(email: string | null | undefined, fullName: string | null | undefined) {
@@ -18,8 +18,7 @@ function toUserLabel(email: string | null | undefined, fullName: string | null |
 }
 
 export async function Navigation() {
-  const supabase = createSupabaseServerClient();
-  const { data } = await supabase.auth.getUser();
+  const { data } = await getCurrentUser();
   const user = data.user;
   const userLabel = toUserLabel(user?.email, user?.user_metadata?.name as string | undefined);
 

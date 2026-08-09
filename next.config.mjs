@@ -12,6 +12,15 @@ const nextConfig = {
     root: projectRoot
   },
   transpilePackages: ["@supabase/ssr"],
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "*.supabase.co",
+        pathname: "/storage/v1/object/sign/gifticon-images/**"
+      }
+    ]
+  },
   async headers() {
     return [
       {
