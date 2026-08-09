@@ -1,8 +1,8 @@
-import Link from "next/link";
-import { markGifticonUsed } from "@/app/gifticons/actions";
-import { parseDateOnly, toDateInputValue } from "@/lib/date";
+import { ExpiryCalendar, type ExpiryCalendarDay } from "@/components/expiry-calendar";
+import { PageState } from "@/components/page-state";
+import { daysUntil, parseDateOnly, toDateInputValue } from "@/lib/date";
 import { fetchCurrentUserGifticons } from "@/lib/data/gifticons";
-import { Gifticon } from "@/lib/types";
+import type { Gifticon } from "@/lib/types";
 
 function getCurrentMonthDays(reference: Date): Date[] {
   const year = reference.getFullYear();
@@ -33,73 +33,96 @@ function groupByExpiryDate(gifticons: Gifticon[]): Map<string, Gifticon[]> {
   return grouped;
 }
 
+function getMonthReference(value: string | undefined, fallback: Date): Date {
+  const match = /^(\d{4})-(\d{2})$/.exec(value ?? "");
+  if (!match) {
+    return new Date(fallback.getFullYear(), fallback.getMonth(), 1);
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  if (year < 2000 || year > 2100 || month < 1 || month > 12) {
+    return new Date(fallback.getFullYear(), fallback.getMonth(), 1);
+  }
+
+  return new Date(year, month - 1, 1);
+}
+
+function getMonthHref(reference: Date, offset: number): string {
+  const target = new Date(reference.getFullYear(), reference.getMonth() + offset, 1);
+  const monthKey = toDateInputValue(target).slice(0, 7);
+  return `/calendar?month=${monthKey}`;
+}
+
+function getDdayLabel(expiresAt: string, today: Date): string {
+  const remainingDays = daysUntil(expiresAt, today);
+  if (remainingDays === 0) {
+    return "D-day";
+  }
+  return remainingDays > 0 ? `D-${remainingDays}` : `D+${Math.abs(remainingDays)}`;
+}
+
 export const dynamic = "force-dynamic";
 
-export default async function CalendarPage() {
+type CalendarPageProps = {
+  searchParams: Promise<{ month?: string }>;
+};
+
+export default async function CalendarPage({ searchParams }: CalendarPageProps) {
+  const { month } = await searchParams;
   const { gifticons, isAuthenticated, errorMessage } = await fetchCurrentUserGifticons();
   const today = new Date();
-  const days = getCurrentMonthDays(today);
+  const reference = getMonthReference(month, today);
+  const days = getCurrentMonthDays(reference);
   const byDate = groupByExpiryDate(gifticons);
-  const totalVisible = Array.from(byDate.values()).reduce((sum, items) => sum + items.length, 0);
+  const calendarDays: ExpiryCalendarDay[] = days.map((day) => {
+    const key = toDateInputValue(day);
+    return {
+      key,
+      day: day.getDate(),
+      items: (byDate.get(key) ?? []).map((item) => ({
+        item,
+        ddayLabel: getDdayLabel(item.expiresAt, today)
+      }))
+    };
+  });
+  const monthLabel = new Intl.DateTimeFormat("ko-KR", {
+    year: "numeric",
+    month: "long"
+  }).format(reference);
 
   return (
-    <section className="space-y-6">
-      <header className="mb-5 space-y-1.5">
+    <section className="flex flex-col gap-6">
+      <header className="mb-5 flex flex-col gap-1.5">
         <p className="text-sm font-semibold text-brand">날짜별 확인</p>
         <h1 className="text-3xl font-bold tracking-tight text-ink">만료 캘린더</h1>
-        <p className="text-base text-muted">
+        <p className="text-base text-muted-foreground">
           월간 뷰에서 날짜를 보고, 각 날짜에 끝나는 기프티콘 개수를 바로 확인합니다.
         </p>
       </header>
 
       {errorMessage ? (
-        <div className="max-w-xl rounded-3xl border border-line bg-white p-5 shadow-panel">
-          <p className="mb-2 text-base font-bold text-ink">캘린더 데이터를 불러오지 못했습니다.</p>
-          <p className="text-base text-muted">{errorMessage}</p>
-        </div>
+        <PageState
+          variant="error"
+          title="캘린더 데이터를 불러오지 못했습니다."
+          description={errorMessage}
+        />
       ) : !isAuthenticated ? (
-        <div className="max-w-xl rounded-3xl border border-line bg-white p-5 shadow-panel">
-          <p className="mb-2 text-base font-bold text-ink">로그인이 필요합니다.</p>
-          <p className="text-base text-muted">캘린더를 보려면 먼저 Google 로그인 해주세요.</p>
-          <Link
-            className="mt-4 inline-flex rounded-xl border border-[#2f5ec4] px-3 py-2 font-semibold text-[#2f5ec4] transition hover:bg-[#f1f6ff]"
-            href="/auth"
-          >
-            로그인하러 가기
-          </Link>
-        </div>
-      ) : totalVisible === 0 ? (
-        <div className="max-w-xl rounded-3xl border border-line bg-white p-5 shadow-panel">
-          <p className="mb-2 text-base font-bold text-ink">표시할 만료 일정이 없습니다.</p>
-          <p className="text-base text-muted">사용 가능한 기프티콘을 등록하면 날짜별로 표시됩니다.</p>
-        </div>
+        <PageState
+          title="로그인이 필요합니다."
+          description="캘린더를 보려면 먼저 Google 로그인 해주세요."
+          action={{ href: "/auth", label: "로그인하러 가기" }}
+        />
       ) : (
-        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 lg:grid-cols-7">
-          {days.map((day) => {
-            const key = toDateInputValue(day);
-            const items = byDate.get(key) ?? [];
-            return (
-              <article key={key} className="min-h-[90px] rounded-2xl border border-line bg-white p-3 shadow-sm lg:min-h-[110px]">
-                <strong className="text-sm font-bold text-ink">{day.getDate()}</strong>
-                <span className="mb-2 mt-1 block text-xs text-muted">{items.length}개</span>
-                {items.slice(0, 2).map((item) => (
-                  <div key={item.id} className="mb-2 rounded-xl bg-slate-50/80 p-2">
-                    <span className="mb-1 block text-xs font-medium text-ink">{item.title}</span>
-                    <form action={markGifticonUsed}>
-                      <input type="hidden" name="gifticonId" value={item.id} />
-                      <button
-                        type="submit"
-                        className="rounded-lg border border-[#d3ddf7] bg-white px-2 py-1 text-[11px] font-semibold text-[#244aa5] transition hover:bg-[#eef3ff]"
-                      >
-                        사용 완료
-                      </button>
-                    </form>
-                  </div>
-                ))}
-              </article>
-            );
-          })}
-        </div>
+        <ExpiryCalendar
+          key={toDateInputValue(reference).slice(0, 7)}
+          days={calendarDays}
+          firstWeekday={days[0]?.getDay() ?? 0}
+          monthLabel={monthLabel}
+          previousMonthHref={getMonthHref(reference, -1)}
+          nextMonthHref={getMonthHref(reference, 1)}
+          todayKey={toDateInputValue(today)}
+        />
       )}
     </section>
   );

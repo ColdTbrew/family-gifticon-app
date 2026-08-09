@@ -1,71 +1,100 @@
 import { GifticonCard } from "@/components/gifticon-card";
-import { UrgencyBuckets } from "@/lib/urgency";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card";
+import { Empty, EmptyDescription, EmptyHeader } from "@/components/ui/empty";
+import type { UrgencyBuckets } from "@/lib/urgency";
 
 type UrgencyBoardProps = {
   buckets: UrgencyBuckets;
 };
 
 function renderDdayLabel(daysLeft: number): string {
-  if (daysLeft === 0) {
-    return "D-day";
-  }
-  return `D-${daysLeft}`;
+  return daysLeft === 0 ? "D-day" : `D-${daysLeft}`;
 }
 
-const columnClassName =
-  "rounded-[1.25rem] border border-line bg-white p-4 shadow-panel";
-const emptyClassName = "m-0 text-sm text-muted";
+type UrgencyColumnProps = {
+  title: string;
+  description: string;
+  badgeLabel: string;
+  badgeVariant: React.ComponentProps<typeof Badge>["variant"];
+  entries: UrgencyBuckets["today"];
+  emptyMessage: string;
+};
+
+function UrgencyColumn({
+  title,
+  description,
+  badgeLabel,
+  badgeVariant,
+  entries,
+  emptyMessage
+}: UrgencyColumnProps) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
+        <CardAction>
+          <Badge variant={badgeVariant}>{badgeLabel}</Badge>
+        </CardAction>
+      </CardHeader>
+      <CardContent>
+        {entries.length > 0 ? (
+          <div className="flex flex-col gap-3">
+            {entries.map((entry) => (
+              <GifticonCard
+                key={entry.item.id}
+                item={entry.item}
+                ddayLabel={renderDdayLabel(entry.daysLeft)}
+              />
+            ))}
+          </div>
+        ) : (
+          <Empty className="min-h-24">
+            <EmptyHeader>
+              <EmptyDescription>{emptyMessage}</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 export function UrgencyBoard({ buckets }: UrgencyBoardProps) {
   return (
     <div className="grid gap-4 lg:grid-cols-3">
-      <section className={columnClassName}>
-        <h2 className="m-0 text-base font-semibold text-ink">오늘 만료</h2>
-        <span className="mb-3 mt-2 inline-flex rounded-full bg-danger px-2.5 py-1 text-xs font-semibold text-white">
-          D-0
-        </span>
-        <div className="flex flex-col gap-2.5">
-          {buckets.today.length > 0 ? (
-            buckets.today.map((entry) => (
-              <GifticonCard key={entry.item.id} item={entry.item} ddayLabel={renderDdayLabel(entry.daysLeft)} />
-            ))
-          ) : (
-            <p className={emptyClassName}>오늘 만료되는 쿠폰이 없습니다.</p>
-          )}
-        </div>
-      </section>
-
-      <section className={columnClassName}>
-        <h2 className="m-0 text-base font-semibold text-ink">곧 만료</h2>
-        <span className="mb-3 mt-2 inline-flex rounded-full bg-caution px-2.5 py-1 text-xs font-semibold text-white">
-          D-1 ~ D-3
-        </span>
-        <div className="flex flex-col gap-2.5">
-          {buckets.soon.length > 0 ? (
-            buckets.soon.map((entry) => (
-              <GifticonCard key={entry.item.id} item={entry.item} ddayLabel={renderDdayLabel(entry.daysLeft)} />
-            ))
-          ) : (
-            <p className={emptyClassName}>D-3 이내 쿠폰이 없습니다.</p>
-          )}
-        </div>
-      </section>
-
-      <section className={columnClassName}>
-        <h2 className="m-0 text-base font-semibold text-ink">주의</h2>
-        <span className="mb-3 mt-2 inline-flex rounded-full bg-[#ffe2b7] px-2.5 py-1 text-xs font-semibold text-[#593000]">
-          D-4 ~ D-7
-        </span>
-        <div className="flex flex-col gap-2.5">
-          {buckets.caution.length > 0 ? (
-            buckets.caution.map((entry) => (
-              <GifticonCard key={entry.item.id} item={entry.item} ddayLabel={renderDdayLabel(entry.daysLeft)} />
-            ))
-          ) : (
-            <p className={emptyClassName}>D-7 이내 쿠폰이 없습니다.</p>
-          )}
-        </div>
-      </section>
+      <UrgencyColumn
+        title="오늘 만료"
+        description="오늘 안에 먼저 확인하세요."
+        badgeLabel="D-0"
+        badgeVariant="destructive"
+        entries={buckets.today}
+        emptyMessage="오늘 만료되는 쿠폰이 없습니다."
+      />
+      <UrgencyColumn
+        title="곧 만료"
+        description="3일 안에 만료될 쿠폰입니다."
+        badgeLabel="D-1 ~ D-3"
+        badgeVariant="warning"
+        entries={buckets.soon}
+        emptyMessage="D-3 이내 쿠폰이 없습니다."
+      />
+      <UrgencyColumn
+        title="주의"
+        description="이번 주 안에 사용할 쿠폰입니다."
+        badgeLabel="D-4 ~ D-7"
+        badgeVariant="secondary"
+        entries={buckets.caution}
+        emptyMessage="D-7 이내 쿠폰이 없습니다."
+      />
     </div>
   );
 }

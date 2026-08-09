@@ -28,6 +28,10 @@ npm run dev
 
 기본 URL: `http://localhost:3000`
 
+로그인 없이 shadcn UI를 확인하려면 개발 서버에서
+`http://localhost:3000/dev/preview`를 엽니다. mock 데이터만 사용하며 제출 동작은
+비활성화됩니다. 이 경로는 프로덕션 환경에서 404를 반환합니다.
+
 ## 주요 명령어
 - `npm run dev`: 개발 서버 실행
 - `npm run build`: 프로덕션 빌드
