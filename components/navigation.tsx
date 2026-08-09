@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { signOut } from "@/app/auth/actions";
+import { Badge } from "@/components/ui/badge";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { cn } from "@/lib/utils";
 
 function toUserLabel(email: string | null | undefined, fullName: string | null | undefined) {
   if (fullName && fullName.trim()) {
@@ -36,26 +39,22 @@ export async function Navigation() {
           <div className="flex items-center gap-2">
             {user ? (
               <>
-                <span className="hidden rounded-full bg-[#eef3ff] px-3 py-2 text-sm font-medium text-[#244aa5] sm:inline-flex">
+                <Badge variant="secondary" className="hidden sm:inline-flex">
                   {userLabel}
-                </span>
-                <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-[#eef3ff] text-sm font-semibold text-[#244aa5] sm:hidden">
+                </Badge>
+                <Badge variant="secondary" className="size-11 sm:hidden">
                   {userLabel.slice(0, 2)}
-                </span>
+                </Badge>
                 <form action={signOut}>
-                  <button
-                    type="submit"
-                    className="rounded-full border border-[#d7def3] px-3 py-2 text-sm font-medium text-ink transition hover:border-[#b8c5ec] hover:bg-slate-50 sm:px-4"
-                    aria-label="로그아웃"
-                  >
+                  <Button type="submit" variant="outline" className="rounded-full" aria-label="로그아웃">
                     <span className="hidden sm:inline">로그아웃</span>
                     <span className="sm:hidden">나감</span>
-                  </button>
+                  </Button>
                 </form>
               </>
             ) : (
               <Link
-                className="rounded-full border border-transparent px-3 py-2 text-sm font-medium text-muted transition hover:border-line hover:bg-slate-50 hover:text-ink sm:px-4"
+                className={cn(buttonVariants({ variant: "ghost" }), "rounded-full")}
                 href="/auth"
               >
                 로그인
@@ -65,28 +64,16 @@ export async function Navigation() {
         </div>
 
         <div className="mt-3 grid grid-cols-4 gap-2 sm:mt-4 sm:flex sm:flex-wrap sm:items-center sm:gap-1.5">
-          <Link
-            className="flex min-h-[44px] items-center justify-center rounded-2xl border border-transparent px-2 py-2 text-center text-sm font-medium text-muted transition hover:border-line hover:bg-slate-50 hover:text-ink"
-            href="/"
-          >
+          <Link className={cn(buttonVariants({ variant: "ghost", size: "lg" }), "w-full sm:w-auto")} href="/">
             홈
           </Link>
-          <Link
-            className="flex min-h-[44px] items-center justify-center rounded-2xl border border-transparent px-2 py-2 text-center text-sm font-medium text-muted transition hover:border-line hover:bg-slate-50 hover:text-ink"
-            href="/calendar"
-          >
+          <Link className={cn(buttonVariants({ variant: "ghost", size: "lg" }), "w-full sm:w-auto")} href="/calendar">
             캘린더
           </Link>
-          <Link
-            className="flex min-h-[44px] items-center justify-center rounded-2xl border border-transparent px-2 py-2 text-center text-sm font-medium text-muted transition hover:border-line hover:bg-slate-50 hover:text-ink"
-            href="/family/setup"
-          >
+          <Link className={cn(buttonVariants({ variant: "ghost", size: "lg" }), "w-full sm:w-auto")} href="/family/setup">
             가족
           </Link>
-          <Link
-            className="flex min-h-[44px] items-center justify-center rounded-2xl border border-transparent px-2 py-2 text-center text-sm font-medium text-muted transition hover:border-line hover:bg-slate-50 hover:text-ink"
-            href="/gifticons/new"
-          >
+          <Link className={cn(buttonVariants({ variant: "ghost", size: "lg" }), "w-full sm:w-auto")} href="/gifticons/new">
             등록
           </Link>
         </div>

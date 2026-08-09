@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { BellRingIcon } from "lucide-react";
+import { Alert, AlertAction, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Spinner } from "@/components/ui/spinner";
+import { Switch } from "@/components/ui/switch";
 
 type PushState =
   | "checking"
@@ -171,52 +175,46 @@ export function PushNotificationControl({ vapidPublicKey }: PushNotificationCont
     return null;
   }
 
+  const isEnabled = state === "enabled" || state === "disabling";
+  const isBusy = state === "checking" || state === "enabling" || state === "disabling";
+  const isDisabled = isBusy || state === "needs-install" || state === "unavailable";
+
+  function handleCheckedChange(checked: boolean) {
+    if (checked) {
+      void enableNotifications();
+      return;
+    }
+    void disableNotifications();
+  }
+
   return (
-    <section className="rounded-[1.25rem] border border-[#d7def3] bg-[#f7f9ff] p-4 shadow-panel">
-      <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-        <div>
-          <p className="text-sm font-semibold text-brand">만료 알림</p>
-          <h2 className="mt-1 text-base font-semibold text-ink">
-            {state === "enabled" || state === "disabling"
-              ? "이 기기에서 알림을 받고 있습니다"
-              : "기프티콘 만료 전에 알려드릴게요"}
-          </h2>
-          <p className="mt-1 text-sm text-muted">
-            {state === "needs-install"
-              ? "iPhone 공유 메뉴에서 홈 화면에 추가한 뒤 앱 아이콘으로 다시 열어주세요."
-              : state === "unavailable"
-                ? "서버의 웹 푸시 키 설정이 필요합니다."
-                : "사용 가능한 기프티콘을 D-7, D-3, D-1에 알려드립니다."}
-          </p>
-        </div>
-
-        {state === "enabled" || state === "disabling" ? (
-          <button
-            type="button"
-            className="min-h-[44px] shrink-0 rounded-xl border border-[#b8c5ec] bg-white px-4 py-2 text-sm font-semibold text-[#244aa5] disabled:cursor-wait disabled:opacity-60"
-            onClick={disableNotifications}
-            disabled={state === "disabling"}
-          >
-            {state === "disabling" ? "끄는 중…" : "알림 끄기"}
-          </button>
-        ) : (
-          <button
-            type="button"
-            className="min-h-[44px] shrink-0 rounded-xl bg-[#2f5ec4] px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
-            onClick={enableNotifications}
-            disabled={
-              state === "checking" ||
-              state === "enabling" ||
-              state === "needs-install" ||
-              state === "unavailable"
-            }
-          >
-            {state === "checking" ? "확인 중…" : state === "enabling" ? "켜는 중…" : "알림 받기"}
-          </button>
-        )}
-      </div>
-
-      {message ? <p className="mt-3 text-sm text-muted" role="status">{message}</p> : null}
-    </section>
+    <Alert variant="info" className="shadow-panel">
+      <BellRingIcon aria-hidden="true" />
+      <AlertTitle>만료 알림</AlertTitle>
+      <AlertDescription>
+        <p className="font-medium text-foreground">
+          {isEnabled
+            ? "이 기기에서 알림을 받고 있습니다"
+            : "기프티콘 만료 전에 알려드릴게요"}
+        </p>
+        <p>
+          {state === "needs-install"
+            ? "iPhone 공유 메뉴에서 홈 화면에 추가한 뒤 앱 아이콘으로 다시 열어주세요."
+            : state === "unavailable"
+              ? "서버의 웹 푸시 키 설정이 필요합니다."
+              : "사용 가능한 기프티콘을 D-7, D-3, D-1에 알려드립니다."}
+        </p>
+        {message ? <p role="status">{message}</p> : null}
+      </AlertDescription>
+      <AlertAction className="flex items-center gap-2">
+        {isBusy ? <Spinner /> : null}
+        <Switch
+          checked={isEnabled}
+          disabled={isDisabled}
+          onCheckedChange={handleCheckedChange}
+          aria-label={isEnabled ? "만료 알림 끄기" : "만료 알림 켜기"}
+        />
+      </AlertAction>
+    </Alert>
   );
 }
