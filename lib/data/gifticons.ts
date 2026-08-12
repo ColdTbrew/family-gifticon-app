@@ -1,8 +1,7 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getCurrentUser } from "@/lib/auth/current-user";
+import { getSignedImageUrlMap } from "@/lib/data/gifticon-image-urls";
 import { Gifticon, GifticonStatus } from "@/lib/types";
-
-const IMAGE_SIGNED_URL_EXPIRY_SECONDS = 60 * 60;
 
 type GifticonRow = {
   id: string;
@@ -91,6 +90,7 @@ export async function fetchCurrentUserGifticons(): Promise<GifticonQueryResult> 
       .from("gifticons")
       .select("id,title,brand,barcode,expires_at,status,used_at,gifticon_images(storage_path)")
       .in("status", ["available", "used"])
+      .limit(1, { referencedTable: "gifticon_images" })
       .order("expires_at", { ascending: true });
 
     if (error) {
@@ -102,34 +102,17 @@ export async function fetchCurrentUserGifticons(): Promise<GifticonQueryResult> 
     }
 
     const rows = (data ?? []) as GifticonRow[];
-    const storagePaths = rows
-      .flatMap((row) => row.gifticon_images ?? [])
-      .map((image) => image.storage_path)
-      .filter((path) => Boolean(path));
-    const uniqueStoragePaths = Array.from(new Set(storagePaths));
+    const storagePaths = rows.flatMap((row) => {
+      const path = row.gifticon_images?.[0]?.storage_path;
+      return path ? [path] : [];
+    });
+    let signedUrlMap = new Map<string, string>();
 
-    const signedUrlMap = new Map<string, string>();
-
-    if (uniqueStoragePaths.length > 0) {
-      const { data: signedUrls, error: signedUrlsError } = await supabase.storage
-        .from("gifticon-images")
-        .createSignedUrls(uniqueStoragePaths, IMAGE_SIGNED_URL_EXPIRY_SECONDS);
-
-      if (signedUrlsError) {
-        console.error("gifticon image signed urls failed:", signedUrlsError.message);
-      } else {
-        signedUrls.forEach(({ error, path, signedUrl }) => {
-          if (!error && path && signedUrl) {
-            signedUrlMap.set(path, signedUrl);
-            return;
-          }
-
-          console.error("gifticon image signed url failed:", {
-            storagePath: path,
-            error
-          });
-        });
-      }
+    try {
+      // Only sign paths returned by the signed-in user's gifticon query.
+      signedUrlMap = await getSignedImageUrlMap(storagePaths);
+    } catch (signedUrlError) {
+      console.error("gifticon image signed urls failed:", signedUrlError);
     }
 
     return {
